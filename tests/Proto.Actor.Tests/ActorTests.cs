@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Proto.TestFixtures;
 using Xunit;
 using static Proto.TestFixtures.Receivers;
@@ -26,16 +27,18 @@ namespace Proto.Tests
 
             var reply = await pid.RequestAsync<object>("hello");
 
-            Assert.Equal("hey", reply);
+            reply.Should().Be("hey");
         }
 
         [Fact]
-        public async Task RequestActorAsync_should_raise_TimeoutException_when_timeout_is_reached()
+        public void RequestActorAsync_should_raise_TimeoutException_when_timeout_is_reached()
         {
             PID pid = SpawnActorFromFunc(EmptyReceive);
 
-            var timeoutEx = await Assert.ThrowsAsync<TimeoutException>(() => pid.RequestAsync<object>("", TimeSpan.FromMilliseconds(20)));
-            Assert.Equal("Request didn't receive any Response within the expected time.", timeoutEx.Message);
+            Func<Task> action = async () => await pid.RequestAsync<object>("", TimeSpan.FromMilliseconds(20));
+
+            action.ShouldThrow<TimeoutException>()
+                .And.Message.Should().Be("Request didn't receive any Response within the expected time.");
         }
 
         [Fact]
@@ -52,7 +55,7 @@ namespace Proto.Tests
 
             var reply = await pid.RequestAsync<object>("hello", TimeSpan.FromMilliseconds(100));
 
-            Assert.Equal("hey", reply);
+            reply.Should().Be("hey");
         }
 
         [Fact]
@@ -73,12 +76,13 @@ namespace Proto.Tests
             pid.Tell("hello");
             pid.Stop();
 
-            Assert.Equal(4, messages.Count);
-            var msgs = messages.ToArray();
-            Assert.IsType(typeof(Started), msgs[0]);
-            Assert.IsType(typeof(string), msgs[1]);
-            Assert.IsType(typeof(Stopping), msgs[2]);
-            Assert.IsType(typeof(Stopped), msgs[3]);
+            messages.ShouldBeEquivalentTo(new object[]
+            {
+                Started.Instance,
+                "hello",
+                Stopping.Instance,
+                Stopped.Instance
+            });
         }
     }
 }
