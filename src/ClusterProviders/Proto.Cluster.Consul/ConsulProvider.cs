@@ -215,10 +215,10 @@ namespace Proto.Cluster.Consul
 
         private void NotifyStatuses()
         {
-            var statuses = _client.Health.Service(_clusterName, null, false, new QueryOptions
+            var statuses = _client.Health.Service(_clusterName, null, true, new QueryOptions
             {
-                WaitIndex = _index,
-                WaitTime = _blockingWaitTime
+          //      WaitIndex = _index,
+          //      WaitTime = _blockingWaitTime
             }).Result;
             _index = statuses.LastIndex;
             var kvKey = _clusterName + "/";
@@ -264,6 +264,11 @@ namespace Proto.Cluster.Consul
                     let memberStatusVal = GetMemberStatusVal(memberIdKey)
                     select new MemberStatus(memberId, v.Service.Address, v.Service.Port, v.Service.Tags, true, _statusValueSerializer.FromValueBytes(memberStatusVal)))
                 .ToArray();
+
+            //foreach (var m in memberStatuses)
+            //{
+            //    Console.WriteLine("Found {0} - {1}",m.Address,string.Join(", ",m.Kinds) );
+            //}
 
             //Update Tags for this member
             foreach (var memStat in memberStatuses)

@@ -20,15 +20,18 @@ internal class Program
         Serialization.RegisterFileDescriptor(Proto.IMDG.PList.ProtosReflection.Descriptor);
 
         Cluster.Start("MyCluster", "127.0.0.1", 0, new ConsulProvider(new ConsulProviderOptions()));
+        
         var list = DataGrid.GetList<string>("MyList");
         var count1 = list.CountAsync().Result;
+        var sw = Stopwatch.StartNew();
         Console.WriteLine(count1);
-        for (var i = 0; i < 1000; i++)
+        for (var i = 0; i < 40000; i++)
         {
             list.AddAsync(i.ToString()).Wait();
         }
         var count2 = list.CountAsync().Result;
         Console.WriteLine(count2);
+        Console.WriteLine(sw.Elapsed);
 
         Console.ReadLine();
         Console.WriteLine("Shutting Down...");
