@@ -1,0 +1,32 @@
+﻿syntax = "proto3";
+package plist;
+option csharp_namespace = "Proto.IMDG.PList";
+
+message GetRequest {
+	int32 index = 1;
+}
+
+message GetResponse {
+	PObject value = 1;
+}
+
+message AddRequest {
+	PObject value = 1;
+}
+
+message RemoveRequest {
+	PObject value = 1;
+}
+
+message PObject {
+	int32 serializer_id = 1;
+	string manifest = 2;
+	bytes payload = 3;
+}
+
+message CountRequest{}
+
+message CountResponse{
+	int32 value = 1;
+}
+message ClearRequest {}
