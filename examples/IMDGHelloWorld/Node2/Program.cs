@@ -17,6 +17,7 @@ namespace Node2
     {
         static void Main(string[] args)
         {
+            Serialization.RegisterFileDescriptor(Proto.IMDG.PList.ProtosReflection.Descriptor);
             Remote.RegisterKnownKind("PList", ListActor.Props);
             Cluster.Start("MyCluster", "127.0.0.1", 0, new ConsulProvider(new ConsulProviderOptions()));
             Console.ReadLine();

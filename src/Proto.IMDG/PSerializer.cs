@@ -15,7 +15,9 @@ namespace Proto.IMDG
                 Serializer.Serialize(item, ms);
                 ms.Position = 0;
                 return new PObject()
-                {                    
+                {                
+                    Manifest = "",
+                    SerializerId = 1,
                     Payload = ByteString.FromStream(ms),
                 };
             }
