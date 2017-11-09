@@ -17,7 +17,7 @@ namespace TestApp
     {
         public static void Start()
         {
-            var clusterName = "cluster" + DateTime.Now.Ticks;
+            var clusterName = "cluster";// + DateTime.Now.Ticks;
             StartConsulDevMode();
             Serialization.RegisterFileDescriptor(ProtosReflection.Descriptor);
             Cluster.Start(clusterName, "127.0.0.1", 0, new ConsulProvider(new ConsulProviderOptions()));
@@ -49,7 +49,7 @@ namespace TestApp
             };
 
             var tasks = new List<Task>();
-            for (int i = 0; i < 20000; i++)
+            for (int i = 0; i < 2000; i++)
             {
                 var client = Grains.HelloGrain("name" + i % 200);
                 var task = client.SayHello(new HelloRequest(),CancellationToken.None,options).ContinueWith(t =>
@@ -64,6 +64,10 @@ namespace TestApp
                     }
                 });
                 tasks.Add(task);
+                if (i % 100 == 0)
+                {
+                    Thread.Sleep(500);
+                }
             }
 
 

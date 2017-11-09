@@ -16,35 +16,17 @@ namespace Proto.IMDG
             _name = name;
         }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            throw new NotSupportedException("Cannot enumerate distributed lists");
-        }
+        public IEnumerator<T> GetEnumerator() => throw new NotSupportedException("Cannot enumerate distributed lists");
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public void Add(T item)
-        {
-            AddAsync(item);
-        }
+        public void Add(T item) => AddAsync(item);
 
-        public void Clear()
-        {
-            ClearAsync();
-        }
+        public void Clear() => ClearAsync();
 
-        public bool Contains(T item)
-        {
-            throw new NotImplementedException();
-        }
+        public bool Contains(T item) => throw new NotImplementedException();
 
-        public void CopyTo(T[] array, int arrayIndex)
-        {
-            throw new NotImplementedException();
-        }
+        public void CopyTo(T[] array, int arrayIndex) => throw new NotImplementedException();
 
         public bool Remove(T item)
         {
@@ -97,7 +79,7 @@ namespace Proto.IMDG
             throw new Exception("Retry error");
         }
 
-        private async Task ClearAsync()
+        public async Task ClearAsync()
         {
             var pid = await GetPid();
             pid.Tell(new ClearRequest());

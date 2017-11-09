@@ -22,6 +22,7 @@ internal class Program
         Cluster.Start("MyCluster", "127.0.0.1", 0, new ConsulProvider(new ConsulProviderOptions()));
         
         var list = DataGrid.GetList<string>("MyList");
+        list.Clear();
         var count1 = list.Count;
         var sw = Stopwatch.StartNew();
         Console.WriteLine(count1);
