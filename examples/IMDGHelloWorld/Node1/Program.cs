@@ -25,9 +25,9 @@ internal class Program
         var count1 = list.CountAsync().Result;
         var sw = Stopwatch.StartNew();
         Console.WriteLine(count1);
-        for (var i = 0; i < 40000; i++)
+        for (var i = 0; i < 200000; i++)
         {
-            list.AddAsync(i.ToString()).Wait();
+            list.AddAsync(i.ToString());
         }
         var count2 = list.CountAsync().Result;
         Console.WriteLine(count2);
