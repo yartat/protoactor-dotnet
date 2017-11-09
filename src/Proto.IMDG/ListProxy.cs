@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Proto.IMDG.PList;
 using Proto.Remote;
 
 namespace Proto.IMDG
 {
-    public class ListProxy<T>
+    public class ListProxy<T> : ICollection<T>
     {
         private readonly string _name;
 
@@ -14,14 +16,53 @@ namespace Proto.IMDG
             _name = name;
         }
 
+        public IEnumerator<T> GetEnumerator()
+        {
+            throw new NotSupportedException("Cannot enumerate distributed lists");
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public void Add(T item)
+        {
+            AddAsync(item);
+        }
+
+        public void Clear()
+        {
+            ClearAsync();
+        }
+
+        public bool Contains(T item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Remove(T item)
+        {
+            RemoveAsync(item);
+            return false;
+        }
+
+        public int Count => CountAsync().Result;
+        public bool IsReadOnly => false;
+
+
         public async Task AddAsync(T item)
         {
             var pid = await GetPid();
-            var msg = new AddRequest
+            pid.Tell(new AddRequest
             {
                 Value = PSerializer.Serialize(item)
-            };
-            pid.Tell(msg);
+            });
         }
 
         public async Task<int> CountAsync()
@@ -50,11 +91,25 @@ namespace Proto.IMDG
                 }
                 catch
                 {
-             
                 }
                 await Task.Delay(i * 50);
             }
             throw new Exception("Retry error");
+        }
+
+        private async Task ClearAsync()
+        {
+            var pid = await GetPid();
+            pid.Tell(new ClearRequest());
+        }
+
+        private async Task RemoveAsync(T item)
+        {
+            var pid = await GetPid();
+            pid.Tell(new RemoveRequest
+            {
+                Value = PSerializer.Serialize(item)
+            });
         }
     }
 }

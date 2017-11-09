@@ -22,14 +22,14 @@ internal class Program
         Cluster.Start("MyCluster", "127.0.0.1", 0, new ConsulProvider(new ConsulProviderOptions()));
         
         var list = DataGrid.GetList<string>("MyList");
-        var count1 = list.CountAsync().Result;
+        var count1 = list.Count;
         var sw = Stopwatch.StartNew();
         Console.WriteLine(count1);
-        for (var i = 0; i < 200000; i++)
+        for (var i = 0; i < 200_000; i++)
         {
-            list.AddAsync(i.ToString());
+            list.Add(i.ToString());
         }
-        var count2 = list.CountAsync().Result;
+        var count2 = list.Count;
         Console.WriteLine(count2);
         Console.WriteLine(sw.Elapsed);
 
