@@ -23,7 +23,7 @@ internal class Program
         var list = DataGrid.GetList<string>("MyList");
         var count1 = list.CountAsync().Result;
         Console.WriteLine(count1);
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < 1000; i++)
         {
             list.AddAsync(i.ToString()).Wait();
         }
