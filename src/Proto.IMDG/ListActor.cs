@@ -6,6 +6,8 @@ namespace Proto.IMDG
 {
     public class ListActor : IActor
     {
+        public static Props Props => Actor.FromProducer(() => new ListActor());
+
         private readonly List<object> _list = new List<object>();
 
         public Task ReceiveAsync(IContext context)

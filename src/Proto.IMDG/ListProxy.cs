@@ -5,11 +5,11 @@ using Proto.Remote;
 
 namespace Proto.IMDG
 {
-    public class GridList<T>
+    public class ListProxy<T>
     {
         private readonly string _name;
 
-        public GridList(string name)
+        public ListProxy(string name)
         {
             _name = name;
         }
@@ -17,10 +17,11 @@ namespace Proto.IMDG
         public async Task AddAsync(T item)
         {
             var pid = await GetPid();
-            pid.Tell(new AddRequest
+            var msg = new AddRequest
             {
                 Value = PSerializer.Serialize(item)
-            });
+            };
+            pid.Tell(msg);
         }
 
         public async Task<int> CountAsync()
@@ -40,16 +41,19 @@ namespace Proto.IMDG
         private async Task<PID> GetPid()
         {
             for (var i = 0; i < 100; i++)
+            {
                 try
                 {
-                    var (pid, status) = await Cluster.Cluster.GetAsync(_name, "GridList");
-                    if (status != ResponseStatusCode.OK && status != ResponseStatusCode.ProcessNameAlreadyExist)
+                    var (pid, status) = await Cluster.Cluster.GetAsync(_name, "PList");
+                    if (status == ResponseStatusCode.OK || status == ResponseStatusCode.ProcessNameAlreadyExist)
                         return pid;
                 }
                 catch
                 {
-                    await Task.Delay(i * 50);
+             
                 }
+                await Task.Delay(i * 50);
+            }
             throw new Exception("Retry error");
         }
     }
