@@ -20,7 +20,7 @@ internal class Program
         Serialization.RegisterFileDescriptor(Proto.IMDG.PList.ProtosReflection.Descriptor);
 
         Cluster.Start("MyCluster", "127.0.0.1", 0, new ConsulProvider(new ConsulProviderOptions()));
-        var list = new ListProxy<string>("MyList");
+        var list = DataGrid.GetList<string>("MyList");
         var count1 = list.CountAsync().Result;
         Console.WriteLine(count1);
         for (var i = 0; i < 10; i++)

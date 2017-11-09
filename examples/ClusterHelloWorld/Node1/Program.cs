@@ -6,7 +6,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading;
 using Messages;
 using Proto.Cluster;
 using Proto.Cluster.Consul;

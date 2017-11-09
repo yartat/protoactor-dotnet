@@ -31,7 +31,7 @@ namespace Proto.IMDG
             return res.Value;
         }
 
-        public async Task<T> Get(int index)
+        public async Task<T> GetAsync(int index)
         {
             var pid = await GetPid();
             var res = await pid.RequestAsync<GetResponse>(new GetRequest {Index = index});
