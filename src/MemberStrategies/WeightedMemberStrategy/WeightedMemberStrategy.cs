@@ -25,6 +25,11 @@ namespace Proto.Cluster.WeightedMemberStrategy
 
         public void AddMember(MemberStatus member)
         {
+            if (member.StatusValue == null)
+            {
+                member.StatusValue = WeightedMemberStatusValue.Default;
+            }
+
             _members.Add(member);
             _wrr.UpdateRR();
             _rdv.UpdateRdv();

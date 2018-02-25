@@ -11,6 +11,7 @@ namespace Proto.Cluster
     public class Rendezvous
     {
         private static readonly HashAlgorithm HashAlgorithm = FNV1A32.Create();
+        //private static readonly Random random = new Random();
 
         private IMemberStrategy _m;
         private byte[][] _memberHashes;
@@ -35,9 +36,11 @@ namespace Proto.Cluster
 
             uint maxScore = 0;
             MemberStatus maxNode = null;
+            //int score = random.Next(members.Count + 1);
+            //return members[score >= members.Count ? members.Count - 1 : score].Address;
             uint score = 0;
 
-            for(int i = 0; i < members.Count; i++)
+            for (int i = 0; i < members.Count; i++)
             {
                 var member = members[i];
                 if (member.Alive)

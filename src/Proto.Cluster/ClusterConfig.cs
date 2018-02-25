@@ -22,7 +22,7 @@ namespace Proto.Cluster
         public IMemberStatusValueSerializer MemberStatusValueSerializer { get; private set; }
         public Func<string, IMemberStrategy> MemberStrategyBuilder { get; private set; }
 
-        public ClusterConfig(string name, string address, int port, IClusterProvider cp)
+        public ClusterConfig(string name, string address, int port, IClusterProvider cp, Func<string, IMemberStrategy> memberStrategyBuilder = null)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Address = address ?? throw new ArgumentNullException(nameof(address));
@@ -32,7 +32,7 @@ namespace Proto.Cluster
             RemoteConfig = new RemoteConfig();
             TimeoutTimespan = TimeSpan.FromSeconds(5);
             MemberStatusValueSerializer = new NullMemberStatusValueSerializer();
-            MemberStrategyBuilder = kind => new SimpleMemberStrategy();
+            MemberStrategyBuilder = memberStrategyBuilder ?? (kind => new SimpleMemberStrategy());
         }
 
         public ClusterConfig WithRemoteConfig(RemoteConfig remoteConfig)

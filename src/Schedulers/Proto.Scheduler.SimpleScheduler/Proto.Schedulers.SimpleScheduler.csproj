@@ -4,9 +4,6 @@
     <TargetFrameworks>netstandard1.5;netstandard2.0;net452</TargetFrameworks>
     <Version>0.1.2</Version>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net452'">
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-  </PropertyGroup>
   <PropertyGroup>
     <OutputType>library</OutputType>
     <Authors>Proto.Actor Team</Authors>

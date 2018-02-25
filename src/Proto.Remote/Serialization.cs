@@ -48,11 +48,11 @@ namespace Proto.Remote
                 return jsonMessage.TypeName;
             }
 
-            var message = obj as IMessage;
-            if (message == null)
+            if (!(obj is IMessage message))
             {
                 throw new ArgumentException("obj must be of type IMessage", nameof(obj));
             }
+
             return message.Descriptor.File.Package + "." + message.Descriptor.Name;
         }
     }
@@ -74,11 +74,11 @@ namespace Proto.Remote
 
         public string GetTypeName(object obj)
         {
-            var message = obj as IMessage;
-            if (message == null)
+            if (!(obj is IMessage message))
             {
                 throw new ArgumentException("obj must be of type IMessage", nameof(obj));
             }
+
             return message.Descriptor.File.Package + "." + message.Descriptor.Name;
         }
     }

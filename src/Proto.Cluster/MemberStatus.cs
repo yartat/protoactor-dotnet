@@ -27,7 +27,7 @@ namespace Proto.Cluster
         public int Port { get; }
         public IReadOnlyCollection<string> Kinds { get; }
         public bool Alive { get; }
-        public IMemberStatusValue StatusValue { get; }
+        public IMemberStatusValue StatusValue { get; set; }
     }
 
     public interface IMemberStatusValue
