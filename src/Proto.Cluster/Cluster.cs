@@ -18,8 +18,15 @@ namespace Proto.Cluster
 
         internal static ClusterConfig cfg;
 
-        public static void Start(string clusterName, string address, int port, IClusterProvider cp, Func<string, IMemberStrategy> memberStrategyBuilder = null) => 
-            StartWithConfig(new ClusterConfig(clusterName, address, port, cp, memberStrategyBuilder));
+        public static void Start(
+            string clusterName, 
+            string address, 
+            int port, 
+            IClusterProvider cp,
+            string advertisedHostname = null,
+            int? advertisedPort = null, 
+            Func<string, IMemberStrategy> memberStrategyBuilder = null) => 
+            StartWithConfig(new ClusterConfig(clusterName, address, port, cp, advertisedHostname, advertisedPort, memberStrategyBuilder));
 
         public static void StartWithConfig(ClusterConfig config)
         {

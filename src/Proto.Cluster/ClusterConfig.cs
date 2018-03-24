@@ -22,14 +22,21 @@ namespace Proto.Cluster
         public IMemberStatusValueSerializer MemberStatusValueSerializer { get; private set; }
         public Func<string, IMemberStrategy> MemberStrategyBuilder { get; private set; }
 
-        public ClusterConfig(string name, string address, int port, IClusterProvider cp, Func<string, IMemberStrategy> memberStrategyBuilder = null)
+        public ClusterConfig(
+            string name, 
+            string address, 
+            int port, 
+            IClusterProvider cp, 
+            string advertisedHostname = null,
+            int? advertisedPort = null,
+            Func<string, IMemberStrategy> memberStrategyBuilder = null)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Address = address ?? throw new ArgumentNullException(nameof(address));
             Port = port;
             ClusterProvider = cp ?? throw new ArgumentNullException(nameof(cp));
             
-            RemoteConfig = new RemoteConfig();
+            RemoteConfig = new RemoteConfig { AdvertisedHostname = advertisedHostname, AdvertisedPort = advertisedPort };
             TimeoutTimespan = TimeSpan.FromSeconds(5);
             MemberStatusValueSerializer = new NullMemberStatusValueSerializer();
             MemberStrategyBuilder = memberStrategyBuilder ?? (kind => new SimpleMemberStrategy());

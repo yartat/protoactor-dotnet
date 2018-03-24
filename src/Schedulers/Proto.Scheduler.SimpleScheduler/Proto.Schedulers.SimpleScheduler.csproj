@@ -2,9 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
     <TargetFrameworks>netstandard1.5;netstandard2.0;net452</TargetFrameworks>
-    <Version>0.1.2</Version>
-  </PropertyGroup>
-  <PropertyGroup>
+    <Version>0.2.0.1-dev</Version>
     <OutputType>library</OutputType>
     <Authors>Proto.Actor Team</Authors>
     <Description>Ultra-fast distributed actors for .NET.</Description>
@@ -17,8 +15,11 @@
     <Product>Proto.Schedulers.SimpleScheduler</Product>
     <AssemblyName>Proto.Schedulers.SimpleScheduler</AssemblyName>
     <RootNamespace>Proto.Schedulers.SimpleScheduler</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Proto.Actor\Proto.Actor.csproj" />
   </ItemGroup>
+
 </Project>

@@ -5,8 +5,13 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Threading;
+using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Messages;
 using Proto.Cluster;
 using Proto.Cluster.Consul;
@@ -15,30 +20,66 @@ using ProtosReflection = Messages.ProtosReflection;
 
 class Program
 {
-    static void Main(string[] args)
+    private const int ItemsCount = 100000;
+    private const int ProcessingCount = 1000000;
+
+    private static readonly List<string> ItemNames = new List<string>(ItemsCount + 1);
+
+    static async Task Main(string[] args)
     {
+        for (int i = 0; i < ItemsCount; ++i)
+        {
+            ItemNames.Add(Guid.NewGuid().ToString());
+        }
+
         Serialization.RegisterFileDescriptor(ProtosReflection.Descriptor);
         var parsedArgs = parseArgs(args);
-        if(parsedArgs.StartConsul)
-        {
-            StartConsulDevMode();
-        }
         Cluster.Start("MyCluster", parsedArgs.ServerName, 12001, new ConsulProvider(new ConsulProviderOptions(), c => c.Address = new Uri("http://" + parsedArgs.ConsulUrl + ":8500/")));
-        var (pid, sc) = Cluster.GetAsync("TheName", "HelloKind").Result;
-        while (sc != ResponseStatusCode.OK)
-            (pid, sc) = Cluster.GetAsync("TheName", "HelloKind").Result;
-        var res = pid.RequestAsync<HelloResponse>(new HelloRequest()).Result;
-        Console.WriteLine(res.Message);
-        Thread.Sleep(System.Threading.Timeout.Infinite);
+        var random = new Random();
+        var (t, s) = await Cluster.GetAsync(ItemNames[0], "Player").ConfigureAwait(false);
+        while (t == null)
+        {
+            (t, s) = await Cluster.GetAsync(ItemNames[0], "Player").ConfigureAwait(false);
+        }
+
+        var sw = new Stopwatch();
+        sw.Start();
+        Parallel.For(0, ProcessingCount, async i =>
+        {
+            var playerId = ItemNames[random.Next(ItemsCount)];
+            var (pid, sc) = await Cluster.GetAsync(playerId, "Player").ConfigureAwait(false);
+            while (pid == null)
+            {
+                (pid, sc) = await Cluster.GetAsync(playerId, "Player").ConfigureAwait(false);
+            }
+
+            var res = pid.RequestAsync<DepositResponse>(new DepositRequest
+            {
+                Amount = 1,
+                Currency = "UAH",
+                Date = Timestamp.FromDateTime(DateTime.UtcNow),
+                Id = Guid.NewGuid().ToString(),
+                Kiosk = "Web",
+                PlayerId = playerId
+            }).Result;
+            if (i % 100000 == 0)
+            {
+                Console.WriteLine($"Processed items: {i}");
+            }
+        });
+
+        sw.Stop();
         Console.WriteLine("Shutting Down...");
-        Cluster.Shutdown();
+        Console.WriteLine($"Processing time is {sw.Elapsed}. Perfromance is {ProcessingCount / sw.ElapsedMilliseconds * 1000} items/sec.");
+        Console.WriteLine("Press key");
+        Console.ReadLine();
     }
 
     private static void StartConsulDevMode()
     {
         Console.WriteLine("Consul - Starting");
         ProcessStartInfo psi =
-            new ProcessStartInfo(@"..\..\..\dependencies\consul",
+            new ProcessStartInfo(@"..\..\..\..\..\dependencies\consul",
                 "agent -server -bootstrap -data-dir /tmp/consul -bind=127.0.0.1 -ui")
             {
                 CreateNoWindow = true,

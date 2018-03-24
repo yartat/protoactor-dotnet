@@ -2,8 +2,26 @@
 package messages;
 option csharp_namespace = "Messages";
 import "Proto.Actor/Protos.proto";
+import "google/protobuf/timestamp.proto";
 
-message HelloRequest {}
-message HelloResponse {
-    string Message=1;
+message DepositRequest {
+    string id = 1;
+    google.protobuf.Timestamp date = 2;
+    string playerId = 3;
+    double amount = 4;
+    string currency = 5;
+    string kiosk = 6;
+    bool manual = 7;
+}
+message DepositResponse {
+    string id = 1;
+    bool alreadyProcessed = 2;
+    google.protobuf.Timestamp processedTime = 3;
+    message Error {
+        int32 kind = 4;
+        string code = 5;
+        string message = 6;
+    }
+    map<string,double> balances = 7;
+    map<string,double> changes = 8;
 }

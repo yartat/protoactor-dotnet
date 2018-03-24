@@ -19,7 +19,7 @@ class Program
         Serialization.RegisterFileDescriptor(ProtosReflection.Descriptor);
         Remote.Start("127.0.0.1", 12001);
 
-        var messageCount = 1000000;
+        var messageCount = 100000000;
         var wg = new AutoResetEvent(false);
         var props = Actor
             .FromProducer(() => new LocalActor(0, messageCount, wg));
