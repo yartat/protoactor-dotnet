@@ -19,7 +19,8 @@ namespace Proto
         None,
         Alive,
         Restarting,
-        Stopping
+        Stopping,
+        Stopped,
     }
 
     public class LocalContext : IMessageInvoker, IContext, ISupervisor
@@ -197,6 +198,17 @@ namespace Proto
             SendUserMessage(target, message);
         }
 
+        public void Forward(PID target)
+        {
+            if (this._message is SystemMessage)
+            {
+                //SystemMessage cannot be forwarded
+                Logger.LogWarning("SystemMessage cannot be forwarded. {0}", this._message);
+                return;
+            }
+            SendUserMessage(target, _message);
+        }
+
         public void Request(PID target, object message)
         {
             var messageEnvelope = new MessageEnvelope(message, Self, null);
@@ -319,6 +331,13 @@ namespace Proto
 
         public Task InvokeUserMessageAsync(object msg)
         {
+            if (_state == ContextState.Stopped)
+            {
+                //already stopped
+                Logger.LogError("Actor already stopped, ignore user message {0}", msg);
+                return Proto.Actor.Done;
+            }
+
             var influenceTimeout = true;
             if (ReceiveTimeout > TimeSpan.Zero)
             {
@@ -429,7 +448,7 @@ namespace Proto
 
         private void HandleWatch(Watch w)
         {
-            if (_state == ContextState.Stopping)
+            if (_state >= ContextState.Stopping)
             {
                 w.Watcher.SendSystemMessage(new Terminated
                 {
@@ -471,9 +490,9 @@ namespace Proto
 
         private async Task HandleStopAsync()
         {
-            if (_state == ContextState.Stopping)
+            if (_state >= ContextState.Stopping)
             {
-                //already stopping
+                //already stopping or stopped
                 return;
             }
 
@@ -538,6 +557,8 @@ namespace Proto
                 };
                 Parent.SendSystemMessage(terminated);
             }
+
+            _state = ContextState.Stopped;
         }
 
         private async Task RestartAsync()

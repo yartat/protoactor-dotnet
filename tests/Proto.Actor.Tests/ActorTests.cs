@@ -56,7 +56,7 @@ namespace Proto.Tests
         }
 
         [Fact]
-        public void ActorLifeCycle()
+        public async void ActorLifeCycle()
         {
             var messages = new Queue<object>();
 
@@ -71,7 +71,8 @@ namespace Proto.Tests
                 );
 
             pid.Tell("hello");
-            pid.Stop();
+
+            await pid.StopAsync();
 
             Assert.Equal(4, messages.Count);
             var msgs = messages.ToArray();
@@ -79,6 +80,34 @@ namespace Proto.Tests
             Assert.IsType(typeof(string), msgs[1]);
             Assert.IsType(typeof(Stopping), msgs[2]);
             Assert.IsType(typeof(Stopped), msgs[3]);
+        }
+
+        public static PID SpawnForwarderFromFunc(Receive forwarder) => Actor.Spawn(Actor.FromFunc(forwarder));
+
+        [Fact]
+        public async Task ForwardActorAsync()
+        {
+            PID pid = SpawnActorFromFunc(ctx =>
+            {
+                if (ctx.Message is string)
+                {
+                    ctx.Respond("hey");
+                }
+                return Actor.Done;
+            });
+
+            PID forwarder = SpawnForwarderFromFunc(ctx =>
+            {
+                if (ctx.Message is string)
+                {
+                    ctx.Forward(pid);
+                }
+                return Actor.Done;
+            });
+
+            var reply = await forwarder.RequestAsync<object>("hello");
+
+            Assert.Equal("hey", reply);
         }
     }
 }
