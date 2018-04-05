@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
     <TargetFrameworks>netstandard1.5;netstandard2.0;net452</TargetFrameworks>
-    <Version>0.2.0.1-dev</Version>
+    <Version>0.2.0.3-dev</Version>
     <RootNamespace>Proto</RootNamespace>
     <OutputType>library</OutputType>
     <Authors>Proto.Actor Team</Authors>
@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.1" />
   </ItemGroup>
 
   <ItemGroup>

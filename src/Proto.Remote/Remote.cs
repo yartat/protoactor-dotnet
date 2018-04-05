@@ -76,24 +76,26 @@ namespace Proto.Remote
         {
             try
             {
+                EndpointManager.Stop();
+                endpointReader.Suspend(true);
+                StopActivator().GetAwaiter().GetResult();
                 if (gracefull)
                 {
-                    EndpointManager.Stop();
-                    endpointReader.Suspend(true);
-                    StopActivator();
-                    server.ShutdownAsync().Wait(10000);
+                    server.ShutdownAsync().Wait(1000);
                 }
                 else
                 {
-                    server.KillAsync().Wait(10000);
+                    server.KillAsync().Wait(1000);
                 }
-                
-                Logger.LogDebug($"Proto.Actor server stopped on {ProcessRegistry.Instance.Address}. Graceful:{gracefull}");
+
+                Logger.LogDebug(
+                    $"Proto.Actor server stopped on {ProcessRegistry.Instance.Address}. Graceful:{gracefull}");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 server.KillAsync().Wait(1000);
-                Logger.LogError($"Proto.Actor server stopped on {ProcessRegistry.Instance.Address} with error:\n{ex.Message}");
+                Logger.LogError(
+                    $"Proto.Actor server stopped on {ProcessRegistry.Instance.Address} with error:\n{ex.Message}");
             }
         }
 
@@ -103,9 +105,9 @@ namespace Proto.Remote
             ActivatorPid = Actor.SpawnNamed(props, "activator");
         }
 
-        private static void StopActivator()
+        private static Task StopActivator()
         {
-            ActivatorPid.Stop();
+            return ActivatorPid.StopAsync();
         }
 
         public static PID ActivatorForAddress(string address)

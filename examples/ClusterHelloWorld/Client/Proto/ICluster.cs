@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Messages;
 
 namespace Client.Proto
 {
-    public interface ICluster
+    public interface ICluster : IDisposable
     {
         Task<DepositResponse> MakeDeposit(string id, string type, DepositRequest request);
     }

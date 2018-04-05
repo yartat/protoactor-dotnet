@@ -78,7 +78,7 @@ namespace Proto.Cluster.Consul
 
         public async Task RegisterMemberAsync(string clusterName, string address, int port, string[] kinds, IMemberStatusValue statusValue, IMemberStatusValueSerializer statusValueSerializer)
         {
-            _id = $"{clusterName}@{address}:{port}";
+            _id = $"{clusterName}_{address}_{port}";
             _clusterName = clusterName;
             _address = address;
             _port = port;

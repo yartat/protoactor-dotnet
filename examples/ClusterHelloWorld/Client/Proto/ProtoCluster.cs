@@ -21,6 +21,11 @@ namespace Client.Proto
             return Invoke<DepositRequest, DepositResponse>(id, type, request);
         }
 
+        public void Dispose()
+        {
+            Cluster.Shutdown();
+        }
+
         private async Task<TResponse> Invoke<TRequest, TResponse>(string id, string type, TRequest request)
         {
             var (pid, sc) = await Cluster.GetAsync(id, type).ConfigureAwait(false);

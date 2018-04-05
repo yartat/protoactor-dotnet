@@ -116,9 +116,11 @@ namespace Client
                     {
                         // fix validation error
                         // see http://stackoverflow.com/questions/32188386/cant-read-from-file-issue-in-swagger-ui
-                        options.EnabledValidator(null);
+                        options.EnableValidator(null);
                         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Currency service API v1");
                     });
+
+            applicationLifetime.ApplicationStopping.Register(cluster.Dispose);
         }
     }
 }

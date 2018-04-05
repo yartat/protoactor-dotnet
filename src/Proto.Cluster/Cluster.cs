@@ -35,16 +35,28 @@ namespace Proto.Cluster
             Remote.Remote.Start(cfg.Address, cfg.Port, cfg.RemoteConfig);
         
             Serialization.RegisterFileDescriptor(ProtosReflection.Descriptor);
-            Logger.LogInformation("Starting Proto.Actor cluster");
+            Logger.LogInformation("Starting cluster");
+            var hostAddress = cfg.RemoteConfig.AdvertisedHostname;
+            var hostPort = cfg.RemoteConfig.AdvertisedPort;
             var (h, p) = ParseAddress(ProcessRegistry.Instance.Address);
+            if (string.IsNullOrEmpty(hostAddress))
+            {
+                hostAddress = h;
+            }
+
+            if (hostPort == null)
+            {
+                hostPort = p;
+            }
+
             var kinds = Remote.Remote.GetKnownKinds();
             Partition.Setup(kinds);
             PidCache.Setup();
             MemberList.Setup();
-            cfg.ClusterProvider.RegisterMemberAsync(cfg.Name, h, p, kinds, config.InitialMemberStatusValue, config.MemberStatusValueSerializer).Wait();
+            cfg.ClusterProvider.RegisterMemberAsync(cfg.Name, hostAddress, hostPort.Value, kinds, config.InitialMemberStatusValue, config.MemberStatusValueSerializer).Wait();
             cfg.ClusterProvider.MonitorMemberStatusChanges();
 
-            Logger.LogInformation("Started Cluster");
+            Logger.LogInformation("Cluster was started successfully");
         }
 
         public static void Shutdown(bool gracefull = true)
@@ -52,7 +64,7 @@ namespace Proto.Cluster
             if (gracefull)
             {
                 cfg.ClusterProvider.Shutdown();
-                //This is to wait ownership transfering complete.
+                //This is to wait ownership transferring complete.
                 Task.Delay(2000).Wait();
                 MemberList.Stop();
                 PidCache.Stop();
