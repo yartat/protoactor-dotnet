@@ -39,7 +39,7 @@ namespace Proto.Cluster
             var hostAddress = cfg.RemoteConfig.AdvertisedHostname;
             var hostPort = cfg.RemoteConfig.AdvertisedPort;
             var (h, p) = ParseAddress(ProcessRegistry.Instance.Address);
-            if (string.IsNullOrEmpty(hostAddress))
+            if (string.IsNullOrEmpty(hostAddress) || hostAddress == "0.0.0.0")
             {
                 hostAddress = h;
             }

@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
     <TargetFrameworks>netstandard1.5;netstandard2.0;net452</TargetFrameworks>
-    <Version>0.2.0.3-dev</Version>
+    <Version>0.2.0.4-dev</Version>
     <OutputType>library</OutputType>
     <Authors>Proto.Actor Team</Authors>
     <Description>Ultra-fast distributed actors for .NET.</Description>
@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.5.1" />
-    <PackageReference Include="Grpc" Version="1.10.0" />
+    <PackageReference Include="Grpc" Version="1.10.1" />
   </ItemGroup>
 
   <ItemGroup>
