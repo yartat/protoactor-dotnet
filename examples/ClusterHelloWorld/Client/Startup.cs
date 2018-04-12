@@ -105,7 +105,7 @@ namespace Client
         {
             var loggerConfig = loggerOptions?.Value;
             loggerFactory
-                .WithFilter(loggerConfig.LogLevels.ToFilterSettings())
+                .WithFilter(loggerConfig?.LogLevels.ToFilterSettings())
                 .AddCoreLogger(env.EnvironmentName, loggerConfig);
 
             app

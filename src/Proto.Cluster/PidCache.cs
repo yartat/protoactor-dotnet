@@ -6,32 +6,37 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Proto.Remote;
 
 namespace Proto.Cluster
 {
     internal static class PidCache
     {
-        private static PID watcher;
-        private static Subscription<object> clusterTopologyEvnSub;
+        private const int StartItemsCount = 3000000;
+        private static PID _watcher;
+        private static Subscription<object> _clusterTopologyEvnSub;
 
-        private static readonly ConcurrentDictionary<string, PID> _cache = new ConcurrentDictionary<string, PID>();
-        private static readonly ConcurrentDictionary<string, string> _reverseCache = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, PID> Cache;
+        private static readonly ConcurrentDictionary<string, string> ReverseCache;
+
+        static PidCache()
+        {
+            Cache = new ConcurrentDictionary<string, PID>(4 * Environment.ProcessorCount, StartItemsCount);
+            ReverseCache = new ConcurrentDictionary<string, string>(4 * Environment.ProcessorCount, StartItemsCount);
+        }
 
         internal static void Setup()
         {
             var props = Actor.FromProducer(() => new PidCacheWatcher()).WithGuardianSupervisorStrategy(Supervision.AlwaysRestartStrategy);
-            watcher = Actor.SpawnNamed(props, "PidCacheWatcher");
-            clusterTopologyEvnSub = Actor.EventStream.Subscribe<MemberStatusEvent>(OnMemberStatusEvent);
+            _watcher = Actor.SpawnNamed(props, "PidCacheWatcher");
+            _clusterTopologyEvnSub = Actor.EventStream.Subscribe<MemberStatusEvent>(OnMemberStatusEvent);
         }
 
         internal static void Stop()
         {
-            watcher.Stop();
-            Actor.EventStream.Unsubscribe(clusterTopologyEvnSub.Id);
+            _watcher.Stop();
+            Actor.EventStream.Unsubscribe(_clusterTopologyEvnSub.Id);
         }
 
         internal static void OnMemberStatusEvent(MemberStatusEvent evn)
@@ -44,16 +49,16 @@ namespace Proto.Cluster
 
         internal static bool TryGetCache(string name, out PID pid)
         {
-            return _cache.TryGetValue(name, out pid);
+            return Cache.TryGetValue(name, out pid);
         }
 
         internal static bool TryAddCache(string name, PID pid)
         {
-            if (_cache.TryAdd(name, pid))
+            if (Cache.TryAdd(name, pid))
             {
                 var key = pid.ToShortString();
-                _reverseCache.TryAdd(key, name);
-                watcher.Tell(new WatchPidRequest(pid));
+                ReverseCache.TryAdd(key, name);
+                _watcher.Tell(new WatchPidRequest(pid));
                 return true;
             }
             return false;
@@ -62,29 +67,29 @@ namespace Proto.Cluster
         internal static void RemoveCacheByPid(PID pid)
         {
             var key = pid.ToShortString();
-            if (_reverseCache.TryRemove(key, out var name))
+            if (ReverseCache.TryRemove(key, out var name))
             {
-                _cache.TryRemove(name, out _);
+                Cache.TryRemove(name, out _);
             }
         }
 
         internal static void RemoveCacheByName(string name)
         {
-            if(_cache.TryRemove(name, out var pid))
+            if(Cache.TryRemove(name, out var pid))
             {
-                _reverseCache.TryRemove(pid.ToShortString(), out _);
+                ReverseCache.TryRemove(pid.ToShortString(), out _);
             }
         }
 
         internal static void RemoveCacheByMemberAddress(string memberAddress)
         {
-            foreach (var (name, pid) in _cache.ToArray())
+            foreach (var (name, pid) in Cache.ToArray())
             {
                 if (pid.Address == memberAddress)
                 {
-                    _cache.TryRemove(name, out _);
+                    Cache.TryRemove(name, out _);
                     var key = pid.ToShortString();
-                    _reverseCache.TryRemove(key, out _);
+                    ReverseCache.TryRemove(key, out _);
                 }
             }
         }

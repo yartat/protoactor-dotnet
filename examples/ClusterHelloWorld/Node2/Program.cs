@@ -116,7 +116,7 @@ namespace Node2
             Remote.RegisterKnownKind("Player", props);
             Cluster.Start("MyCluster", parsedArgs.ServerName, parsedArgs.Port, new ConsulProvider(new ConsulProviderOptions(), c => c.Address = new Uri("http://" + parsedArgs.ConsulUrl + ":8500/")));
             Console.WriteLine("Started.");
-            Thread.Sleep(System.Threading.Timeout.Infinite);
+            Thread.Sleep(Timeout.Infinite);
             Console.WriteLine("Shutting Down...");
             Cluster.Shutdown();
         }
@@ -130,14 +130,14 @@ namespace Node2
 
             if (args.Length >= 2)
             {
-                return new Node2Config(args[0], args[1], "127.0.0.1");
+                return new Node2Config(args[0], args[1], "0.0.0.0");
             }
 
             if (args.Length >= 1)
             {
-                return new Node2Config(args[0], "127.0.0.1", "127.0.0.1");
+                return new Node2Config(args[0], "0.0.0.0", "127.0.0.1");
             }
-            return new Node2Config("12000", "127.0.0.1", "127.0.0.1");
+            return new Node2Config("12000", "0.0.0.0", "127.0.0.1");
         }
 
         class Node2Config

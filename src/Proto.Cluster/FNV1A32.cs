@@ -4,7 +4,7 @@ namespace System.Security.Cryptography
     {
         protected FNV1A32() { }
 
-#if NETSTANDARD2_0 || NET452
+#if NETSTANDARD2_0 || NET46
         public new static FNV1A32 Create()
 #else
         public static FNV1A32 Create()
@@ -24,7 +24,7 @@ namespace System.Security.Cryptography
             public Implementation()
             {
                 this.Initialize();
-#if NETSTANDARD2_0 || NET452
+#if NETSTANDARD2_0 || NET46
                 this.HashSizeValue = 32;
 #endif
             }

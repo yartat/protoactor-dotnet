@@ -138,8 +138,8 @@ namespace Client.Logging
         {
             if (state == null || prop == null)
                 return null;
-            var properties = state.Select(x => prop(x)).ToArray();
-            return properties?.Any() ?? false
+            var properties = state.Select(prop).ToArray();
+            return properties.Any()
                 ? new CoreLoggerScopeContext(properties)
                 : null;
         }

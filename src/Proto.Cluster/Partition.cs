@@ -15,9 +15,10 @@ namespace Proto.Cluster
 {
     internal static class Partition
     {
-        public static Dictionary<string, PID> KindMap = new Dictionary<string, PID>();
+        private const int InitialCount = 1000000;
+        public static Dictionary<string, PID> KindMap = new Dictionary<string, PID>(InitialCount);
 
-        private static Subscription<object> memberStatusSub;
+        private static Subscription<object> _memberStatusSub;
 
         public static void Setup(string[] kinds)
         {
@@ -27,7 +28,7 @@ namespace Proto.Cluster
                 KindMap[kind] = pid;
             }
 
-            memberStatusSub = EventStream.Instance.Subscribe<MemberStatusEvent>(msg =>
+            _memberStatusSub = EventStream.Instance.Subscribe<MemberStatusEvent>(msg =>
             {
                 foreach (var kind in msg.Kinds)
                 {
@@ -53,7 +54,7 @@ namespace Proto.Cluster
                 kind.Stop();
             }
             KindMap.Clear();
-            EventStream.Instance.Unsubscribe(memberStatusSub.Id);
+            EventStream.Instance.Unsubscribe(_memberStatusSub.Id);
         }
 
         public static PID PartitionForKind(string address, string kind)
@@ -64,6 +65,8 @@ namespace Proto.Cluster
 
     internal class PartitionActor : IActor
     {
+        private const int InitialCount = 3000000;
+
         private class SpawningProcess : TaskCompletionSource<ActorPidResponse>
         {
             public string SpawningAddress { get; }
@@ -73,10 +76,10 @@ namespace Proto.Cluster
         private readonly string _kind;
         private readonly ILogger _logger = Log.CreateLogger<PartitionActor>();
 
-        private readonly Dictionary<string, PID> _partition = new Dictionary<string, PID>(); //actor/grain name to PID
-        private readonly Dictionary<PID, string> _reversePartition = new Dictionary<PID, string>(); //PID to grain name
+        private readonly Dictionary<string, PID> _partition = new Dictionary<string, PID>(InitialCount); //actor/grain name to PID
+        private readonly Dictionary<PID, string> _reversePartition = new Dictionary<PID, string>(InitialCount); //PID to grain name
 
-        private readonly Dictionary<string, SpawningProcess> _spawningProcs = new Dictionary<string, SpawningProcess>(); //spawning processes
+        private readonly Dictionary<string, SpawningProcess> _spawningProcs = new Dictionary<string, SpawningProcess>(InitialCount); //spawning processes
 
         public PartitionActor(string kind)
         {
@@ -332,7 +335,7 @@ namespace Proto.Cluster
             ActorPidResponse pidResp;
             try
             {
-                pidResp = await Remote.Remote.SpawnNamedAsync(activator, req.Name, req.Kind, Cluster.cfg.TimeoutTimespan);
+                pidResp = await Remote.Remote.SpawnNamedAsync(activator, req.Name, req.Kind, Cluster.Configuration.TimeoutTimespan);
             }
             catch (TimeoutException)
             {

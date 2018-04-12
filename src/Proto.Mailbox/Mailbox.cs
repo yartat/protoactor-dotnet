@@ -117,6 +117,7 @@ namespace Proto.Mailbox
                     t.MailboxEmpty();
                 }
             }
+
             return Task.FromResult(0);
         }
 

@@ -5,6 +5,9 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -16,7 +19,7 @@ namespace Proto.Cluster
     {
         private static readonly ILogger Logger = Log.CreateLogger(typeof(Cluster).FullName);
 
-        internal static ClusterConfig cfg;
+        internal static ClusterConfig Configuration;
 
         public static void Start(
             string clusterName, 
@@ -30,18 +33,20 @@ namespace Proto.Cluster
 
         public static void StartWithConfig(ClusterConfig config)
         {
-            cfg = config;
+            Configuration = config;
 
-            Remote.Remote.Start(cfg.Address, cfg.Port, cfg.RemoteConfig);
+            Remote.Remote.Start(Configuration.Address, Configuration.Port, Configuration.RemoteConfig);
         
             Serialization.RegisterFileDescriptor(ProtosReflection.Descriptor);
             Logger.LogInformation("Starting cluster");
-            var hostAddress = cfg.RemoteConfig.AdvertisedHostname;
-            var hostPort = cfg.RemoteConfig.AdvertisedPort;
+            var hostAddress = Configuration.RemoteConfig.AdvertisedHostname;
+            var hostPort = Configuration.RemoteConfig.AdvertisedPort;
             var (h, p) = ParseAddress(ProcessRegistry.Instance.Address);
             if (string.IsNullOrEmpty(hostAddress) || hostAddress == "0.0.0.0")
             {
-                hostAddress = h;
+                hostAddress = h != "0.0.0.0" ? 
+                    h :
+                    GetLocalIpAddress().ToString();
             }
 
             if (hostPort == null)
@@ -53,8 +58,8 @@ namespace Proto.Cluster
             Partition.Setup(kinds);
             PidCache.Setup();
             MemberList.Setup();
-            cfg.ClusterProvider.RegisterMemberAsync(cfg.Name, hostAddress, hostPort.Value, kinds, config.InitialMemberStatusValue, config.MemberStatusValueSerializer).Wait();
-            cfg.ClusterProvider.MonitorMemberStatusChanges();
+            Configuration.ClusterProvider.RegisterMemberAsync(Configuration.Name, hostAddress, hostPort.Value, kinds, config.InitialMemberStatusValue, config.MemberStatusValueSerializer).Wait();
+            Configuration.ClusterProvider.MonitorMemberStatusChanges();
 
             Logger.LogInformation("Cluster was started successfully");
         }
@@ -63,7 +68,7 @@ namespace Proto.Cluster
         {
             if (gracefull)
             {
-                cfg.ClusterProvider.Shutdown();
+                Configuration.ClusterProvider.Shutdown();
                 //This is to wait ownership transferring complete.
                 Task.Delay(2000).Wait();
                 MemberList.Stop();
@@ -110,8 +115,8 @@ namespace Proto.Cluster
 
             try
             {
-                var resp = ct == null || ct == CancellationToken.None
-                           ? await remotePid.RequestAsync<ActorPidResponse>(req, cfg.TimeoutTimespan)
+                var resp = ct == CancellationToken.None
+                           ? await remotePid.RequestAsync<ActorPidResponse>(req, Configuration.TimeoutTimespan)
                            : await remotePid.RequestAsync<ActorPidResponse>(req, ct);
                 var status = (ResponseStatusCode) resp.StatusCode;
                 switch (status)
@@ -134,5 +139,12 @@ namespace Proto.Cluster
         }
 
         public static void RemoveCache(string name) => PidCache.RemoveCacheByName(name);
+
+        private static IPAddress GetLocalIpAddress()
+        {
+            var host = Dns.GetHostEntryAsync(Dns.GetHostName()).GetAwaiter().GetResult();
+            var result = host.AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
+            return result ?? throw new Exception("No network adapters with an IPv4 address in the system!");
+        }
     }
 }

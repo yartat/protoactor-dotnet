@@ -13,7 +13,7 @@ namespace Proto
     public class ProcessRegistry
     {
         private const string NoHost = "nonhost";
-        private readonly IList<Func<PID, Process>> _hostResolvers = new List<Func<PID, Process>>();
+        private readonly IList<Func<PID, Process>> _hostResolvers = new List<Func<PID, Process>>(100);
         private readonly HashedConcurrentDictionary _localActorRefs = new HashedConcurrentDictionary();
         private int _sequenceId;
         public static ProcessRegistry Instance { get; } = new ProcessRegistry();

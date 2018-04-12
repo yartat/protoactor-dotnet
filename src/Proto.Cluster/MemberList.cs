@@ -14,11 +14,12 @@ namespace Proto.Cluster
 {
     public static class MemberList
     {
+        private const int InitialCount = 1000000;
         private static readonly ILogger _logger = Log.CreateLogger("MemberList");
 
         private static readonly ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
-        private static readonly Dictionary<string, MemberStatus> _members = new Dictionary<string, MemberStatus>();
-        private static readonly Dictionary<string, IMemberStrategy> _memberStrategyByKind = new Dictionary<string, IMemberStrategy>();
+        private static readonly Dictionary<string, MemberStatus> _members = new Dictionary<string, MemberStatus>(InitialCount);
+        private static readonly Dictionary<string, IMemberStrategy> _memberStrategyByKind = new Dictionary<string, IMemberStrategy>(InitialCount);
 
         private static Subscription<object> _clusterTopologyEvnSub;
 
@@ -172,7 +173,7 @@ namespace Proto.Cluster
                 foreach (var k in @new.Kinds)
                 {
                     if (!_memberStrategyByKind.ContainsKey(k))
-                        _memberStrategyByKind[k] = Cluster.cfg.MemberStrategyBuilder(k);
+                        _memberStrategyByKind[k] = Cluster.Configuration.MemberStrategyBuilder(k);
                     _memberStrategyByKind[k].AddMember(@new);
                 }
 
