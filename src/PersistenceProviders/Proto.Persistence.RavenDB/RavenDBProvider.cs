@@ -1,4 +1,4 @@
-﻿#if NET452
+﻿#if NET46
 using Raven.Abstractions.Data;
 using Raven.Abstractions.Extensions;
 using Raven.Client;
@@ -9,7 +9,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-#if !NET452
+#if !NET46
 using Raven.Client.Documents;
 using Raven.Client.Documents.Indexes;
 using Raven.Client.Documents.Operations;
@@ -31,7 +31,7 @@ namespace Proto.Persistence.RavenDB
 
         private async void SetupIndexes()
         {
-#if NET452
+#if NET46
             await IndexCreation.CreateIndexesAsync(typeof(DeleteEventIndex).Assembly(), _store);
             await IndexCreation.CreateIndexesAsync(typeof(DeleteSnapshotIndex).Assembly(), _store);
 #else
@@ -104,7 +104,7 @@ namespace Proto.Persistence.RavenDB
             var indexName = "DeleteEventIndex";
 
             var indexQuery = new IndexQuery { Query = $"ActorName:{actorName} AND Index_Range:[Lx0 TO Lx{inclusiveToIndex}]" };
-#if NET452
+#if NET46
             Operation operation = await _store.AsyncDatabaseCommands.DeleteByIndexAsync(indexName, indexQuery);
 #endif
         }
@@ -114,7 +114,7 @@ namespace Proto.Persistence.RavenDB
             var indexName = "DeleteSnapshotIndex";
 
             var indexQuery = new IndexQuery { Query = $"ActorName:{actorName} AND Index_Range:[Lx0 TO Lx{inclusiveToIndex}]" };
-#if NET452
+#if NET46
             Operation operation = await _store.AsyncDatabaseCommands.DeleteByIndexAsync(indexName, indexQuery);
 #endif
         }

@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-#if NET452
+#if NET46
 using Raven.Abstractions.Indexing;
 using Raven.Client.Indexes;
 #else
@@ -20,11 +20,11 @@ namespace Proto.Persistence.RavenDB
                           };
 
             Index(x => x.ActorName, FieldIndexing.Default);
-#if NET452
+#if NET46
             Sort(x => x.ActorName, SortOptions.String);
 #endif
             Index(x => x.Index, FieldIndexing.Default);
-#if NET452
+#if NET46
             Sort(x => x.Index, SortOptions.Long);
 #endif
         }

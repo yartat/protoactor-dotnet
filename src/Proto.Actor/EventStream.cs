@@ -76,7 +76,7 @@ namespace Proto
 
         public void Publish(T msg)
         {
-            foreach (var sub in _subscriptions)
+            foreach (var sub in _subscriptions.ToArray())
             {
                 sub.Value.Dispatcher.Schedule(() =>
                 {

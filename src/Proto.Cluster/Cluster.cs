@@ -35,6 +35,16 @@ namespace Proto.Cluster
         {
             Configuration = config;
 
+            if (Configuration.Address == "0.0.0.0" && string.IsNullOrEmpty(Configuration.RemoteConfig.AdvertisedHostname))
+            {
+                Configuration.RemoteConfig.AdvertisedHostname = GetLocalIpAddress().ToString();
+            }
+
+            if (Configuration.RemoteConfig.AdvertisedPort == null && !string.IsNullOrEmpty(Configuration.RemoteConfig.AdvertisedHostname))
+            {
+                Configuration.RemoteConfig.AdvertisedPort = Configuration.Port;
+            }
+
             Remote.Remote.Start(Configuration.Address, Configuration.Port, Configuration.RemoteConfig);
         
             Serialization.RegisterFileDescriptor(ProtosReflection.Descriptor);
@@ -42,11 +52,9 @@ namespace Proto.Cluster
             var hostAddress = Configuration.RemoteConfig.AdvertisedHostname;
             var hostPort = Configuration.RemoteConfig.AdvertisedPort;
             var (h, p) = ParseAddress(ProcessRegistry.Instance.Address);
-            if (string.IsNullOrEmpty(hostAddress) || hostAddress == "0.0.0.0")
+            if (string.IsNullOrEmpty(hostAddress))
             {
-                hostAddress = h != "0.0.0.0" ? 
-                    h :
-                    GetLocalIpAddress().ToString();
+                hostAddress = h;
             }
 
             if (hostPort == null)

@@ -3,6 +3,9 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DefineConstants>PERFORMANCE_TEST</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <Content Include="runtimeconfig.template.json" />
   </ItemGroup>

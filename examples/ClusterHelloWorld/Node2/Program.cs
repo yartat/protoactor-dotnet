@@ -6,10 +6,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Google.Protobuf.Collections;
 using Messages;
 using Newtonsoft.Json;
 using Node2.Contracts;
@@ -43,13 +41,22 @@ namespace Node2
                 case DepositRequest request:
                     if (Balances == null)
                     {
+#if PERFORMANCE_TEST
+                        Balances = new Dictionary<string, double>();
+#else
                         var balanceDoc = await _playerRepository.GetDocumentAsync(context.Self.Id).ConfigureAwait(false);
                         Balances = balanceDoc != null
                             ? JsonConvert.DeserializeObject<Dictionary<string, double>>(balanceDoc.Value)
                             : new Dictionary<string, double>();
+#endif
+
                     }
 
+#if PERFORMANCE_TEST
+                    StorageDataItem depositDocument = null;
+#else
                     var depositDocument = await _depositRepository.GetDocumentAsync(request.Id).ConfigureAwait(false);
+#endif
                     if (depositDocument != null)
                     {
                         var item = JsonConvert.DeserializeObject<DepositTransaction>(depositDocument.Value);
@@ -78,12 +85,14 @@ namespace Node2
                         TransactionId = request.Id
                     };
 
+#if !PERFORMANCE_TEST
                     var playerTask = _playerRepository.UpsertDocumentAsync(context.Self.Id,
                         new StorageDataItem {Value = JsonConvert.SerializeObject(Balances)});
                     var depositTask = _depositRepository.UpsertDocumentAsync(request.Id,
                         new StorageDataItem {Value = JsonConvert.SerializeObject(deposit)});
 
                     await Task.WhenAll(playerTask, depositTask).ConfigureAwait(false);
+#endif
                     var response = new DepositResponse
                     {
                         Id = request.Id,
@@ -105,7 +114,8 @@ namespace Node2
                 IndexNamePrefix = "Wallet_new",
                 NumberOfReplicas = 3,
                 NumberOfShards = 3,
-                Url = "http://localhost:9200"
+                //Url = "http://localhost:9200"
+                Url = "http://elastic.betlab.private:9200"
             };
             var client = new ElasticSimpleClient(new Uri(options.Url));
             var player = new ElasticRepository(client, options, "player");

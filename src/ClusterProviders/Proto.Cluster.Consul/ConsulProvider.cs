@@ -122,7 +122,7 @@ namespace Proto.Cluster.Consul
             {
                 while (!_shutdown)
                 {
-                    NotifyStatuses();
+                    NotifyStatuses().Wait();
                 }
             }) {IsBackground = true};
             t.Start();
@@ -134,7 +134,7 @@ namespace Proto.Cluster.Consul
             {
                 while (!_shutdown)
                 {
-                    BlockingUpdateTtl();
+                    BlockingUpdateTtl().Wait();
                     Thread.Sleep(_refreshTtl);
                 }
             }) {IsBackground = true};
@@ -209,13 +209,13 @@ namespace Proto.Cluster.Consul
             await _client.KV.DeleteTree(kvKey);
         }
 
-        private void NotifyStatuses()
+        private async Task NotifyStatuses()
         {
-            var statuses = _client.Health.Service(_clusterName, null, false, new QueryOptions
+            var statuses = await _client.Health.Service(_clusterName, null, false, new QueryOptions
             {
                 WaitIndex = _index,
                 WaitTime = _blockingWaitTime
-            }).Result;
+            }).ConfigureAwait(false);
             _index = statuses.LastIndex;
             var kvKey = _clusterName + "/";
             var kv = _client.KV.List(kvKey).Result;
@@ -275,9 +275,9 @@ namespace Proto.Cluster.Consul
             Actor.EventStream.Publish(res);
         }
 
-        private void BlockingUpdateTtl()
+        private Task BlockingUpdateTtl()
         {
-            _client.Agent.PassTTL("service:" + _id, "").Wait();
+            return _client.Agent.PassTTL("service:" + _id, "");
         }
     }
 }

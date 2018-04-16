@@ -44,16 +44,11 @@ class Program
 
         var sw = new Stopwatch();
         sw.Start();
-        Parallel.For(0, ProcessingCount, async i =>
+        for(var i = 0; i <= ProcessingCount; ++i)
         {
             var playerId = ItemNames[random.Next(ItemsCount)];
             var (pid, sc) = await Cluster.GetAsync(playerId, "Player").ConfigureAwait(false);
-            while (pid == null)
-            {
-                (pid, sc) = await Cluster.GetAsync(playerId, "Player").ConfigureAwait(false);
-            }
-
-            var res = pid.RequestAsync<DepositResponse>(new DepositRequest
+            var res = await pid.RequestAsync<DepositResponse>(new DepositRequest
             {
                 Amount = 1,
                 Currency = "UAH",
@@ -61,12 +56,12 @@ class Program
                 Id = Guid.NewGuid().ToString(),
                 Kiosk = "Web",
                 PlayerId = playerId
-            }).Result;
+            }).ConfigureAwait(false);
             if (i % 100000 == 0)
             {
                 Console.WriteLine($"Processed items: {i}");
             }
-        });
+        }
 
         sw.Stop();
         Console.WriteLine("Shutting Down...");
@@ -94,7 +89,7 @@ class Program
         {
             return new Node1Config(args[0], args[1], bool.Parse(args[2]));
         }
-        return new Node1Config("127.0.0.1", "127.0.0.1", true);
+        return new Node1Config("0.0.0.0", "127.0.0.1", true);
     }
 
     class Node1Config

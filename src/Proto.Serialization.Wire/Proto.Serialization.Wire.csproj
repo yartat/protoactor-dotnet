@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.6;netstandard2.0;net452</TargetFrameworks>
+    <TargetFrameworks>netstandard1.6;netstandard2.0;net46</TargetFrameworks>
     <Version>0.2.0.6-dev</Version>
     <OutputType>library</OutputType>
     <Authors>Proto.Actor Team</Authors>
@@ -13,6 +13,8 @@
     <PackageTags>actors actor model concurrency proto protoactor</PackageTags>
     <AssemblyName>Proto.Serialization.Wire</AssemblyName>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
