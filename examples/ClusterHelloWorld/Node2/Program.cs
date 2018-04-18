@@ -114,8 +114,8 @@ namespace Node2
                 IndexNamePrefix = "Wallet_new",
                 NumberOfReplicas = 3,
                 NumberOfShards = 3,
-                //Url = "http://localhost:9200"
-                Url = "http://elastic.betlab.private:9200"
+                Url = "http://localhost:9200"
+                //Url = "http://elastic.betlab.private:9200"
             };
             var client = new ElasticSimpleClient(new Uri(options.Url));
             var player = new ElasticRepository(client, options, "player");
@@ -126,8 +126,17 @@ namespace Node2
             Remote.RegisterKnownKind("Player", props);
             Cluster.Start("MyCluster", parsedArgs.ServerName, parsedArgs.Port, new ConsulProvider(new ConsulProviderOptions(), c => c.Address = new Uri("http://" + parsedArgs.ConsulUrl + ":8500/")));
             Console.WriteLine("Started.");
-            Thread.Sleep(Timeout.Infinite);
-            Console.WriteLine("Shutting Down...");
+            var exitEvent = new ManualResetEvent(false);
+            Console.CancelKeyPress += (sender, eventArgs) =>
+            {
+                eventArgs.Cancel = true;
+                exitEvent.Set();
+            };
+
+            Console.WriteLine("Press CTRL+C to stop node and exit application");
+
+            exitEvent.WaitOne();
+            Console.WriteLine("Shutdown.");
             Cluster.Shutdown();
         }
 

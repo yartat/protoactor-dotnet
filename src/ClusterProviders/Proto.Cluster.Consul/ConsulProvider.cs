@@ -20,7 +20,7 @@ namespace Proto.Cluster.Consul
         /// <summary>
         /// Default value is 3 seconds
         /// </summary>
-        public TimeSpan? ServiceTtl { get; set; } = TimeSpan.FromSeconds(10);
+        public TimeSpan? ServiceTtl { get; set; } = TimeSpan.FromSeconds(3);
 
         /// <summary>
         /// Default value is 1 second
@@ -30,12 +30,12 @@ namespace Proto.Cluster.Consul
         /// <summary>
         /// Default value is 10 seconds
         /// </summary>
-        public TimeSpan? DeregisterCritical { get; set; } = TimeSpan.FromSeconds(30);
+        public TimeSpan? DeregisterCritical { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
         /// Default value is 20 seconds
         /// </summary>
-        public TimeSpan? BlockingWaitTime { get; set; } = TimeSpan.FromSeconds(20);
+        public TimeSpan? BlockingWaitTime { get; set; } = TimeSpan.FromSeconds(1);
     }
 
     public class ConsulProvider : IClusterProvider
@@ -51,10 +51,11 @@ namespace Proto.Cluster.Consul
         private TimeSpan _deregisterCritical;
         private TimeSpan _refreshTtl;
         private ulong _index;
-        private bool _shutdown = false;
-        private bool _deregistered = false;
+        private volatile bool _shutdown;
+        private bool _deregistered;
         private IMemberStatusValue _statusValue;
         private IMemberStatusValueSerializer _statusValueSerializer;
+        private volatile string[] _clusterItems;
 
         public ConsulProvider(ConsulProviderOptions options) : this(options, config => { }) { }
 
@@ -105,7 +106,7 @@ namespace Proto.Cluster.Consul
 
         public async Task DeregisterAllKindsAsync()
         {
-            this._kinds = new string[0];
+            _kinds = new string[0];
             await RegisterServiceAsync();
         }
 
@@ -115,6 +116,8 @@ namespace Proto.Cluster.Consul
             if (!_deregistered)
                 await DeregisterMemberAsync();
         }
+
+        public string[] ClusterAddresses => _clusterItems;
 
         public void MonitorMemberStatusChanges()
         {
@@ -211,18 +214,21 @@ namespace Proto.Cluster.Consul
 
         private async Task NotifyStatuses()
         {
-            var statuses = await _client.Health.Service(_clusterName, null, false, new QueryOptions
+            var kvKey = _clusterName + "/";
+            var statusesTask = _client.Health.Service(_clusterName, null, false, new QueryOptions
             {
                 WaitIndex = _index,
                 WaitTime = _blockingWaitTime
-            }).ConfigureAwait(false);
-            _index = statuses.LastIndex;
-            var kvKey = _clusterName + "/";
-            var kv = _client.KV.List(kvKey).Result;
+            });
+            var kvTask = _client.KV.List(kvKey);
+
+            await Task.WhenAll(statusesTask, kvTask).ConfigureAwait(false);
+
+            _index = statusesTask.Result.LastIndex;
 
             var memberIds = new Dictionary<string, string>();
             var memberStatusVals = new Dictionary<string, byte[]>();
-            foreach (var v in kv.Response)
+            foreach (var v in kvTask.Result.Response)
             {
                 var idx = v.Key.LastIndexOf('/');
                 var key = v.Key.Substring(0, idx);
@@ -253,7 +259,7 @@ namespace Proto.Cluster.Consul
             };
 
             var memberStatuses =
-                (from v in statuses.Response
+                (from v in statusesTask.Result.Response
                     let memberIdKey = $"{_clusterName}/{v.Service.Address}:{v.Service.Port}"
                     let memberId = GetMemberId(memberIdKey)
                     where memberId != null
@@ -261,6 +267,7 @@ namespace Proto.Cluster.Consul
                     select new MemberStatus(memberId, v.Service.Address, v.Service.Port, v.Service.Tags, true, _statusValueSerializer.FromValueBytes(memberStatusVal)))
                 .ToArray();
 
+            _clusterItems = memberStatuses.Select(x => x.Address).ToArray();
             //Update Tags for this member
             foreach (var memStat in memberStatuses)
             {

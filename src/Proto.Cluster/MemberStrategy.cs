@@ -14,6 +14,7 @@ namespace Proto.Cluster
         void AddMember(MemberStatus member);
         void UpdateMember(MemberStatus member);
         void RemoveMember(MemberStatus member);
+        void RemoveMember(string address);
         string GetPartition(string key);
         string GetActivator();
     }
@@ -56,6 +57,19 @@ namespace Proto.Cluster
             for (int i = 0; i < _members.Count; i++)
             {
                 if (_members[i].Address == member.Address)
+                {
+                    _members.RemoveAt(i);
+                    _rdv.UpdateRdv();
+                    return;
+                }
+            }
+        }
+
+        public void RemoveMember(string address)
+        {
+            for (int i = 0; i < _members.Count; i++)
+            {
+                if (_members[i].Address == address)
                 {
                     _members.RemoveAt(i);
                     _rdv.UpdateRdv();

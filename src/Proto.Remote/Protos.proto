@@ -42,6 +42,15 @@ message ConnectResponse {
   int32 default_serializer_id = 1;
 }
 
+message NodeShutdownRequest {
+  string address = 1;
+  repeated string kinds = 2;
+}
+
+message NodeShutdownResponse {
+	string address = 1;
+}
+
 service Remoting {
   rpc Connect(ConnectRequest) returns (ConnectResponse) {}
   rpc Receive (stream MessageBatch) returns (stream Unit) {}

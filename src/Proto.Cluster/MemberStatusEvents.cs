@@ -27,9 +27,16 @@ namespace Proto.Cluster
             Host = host ?? throw new ArgumentNullException(nameof(host));
             Kinds = kinds ?? throw new ArgumentNullException(nameof(kinds));
             Port = port;
+            Address = Host + ":" + Port;
         }
 
-        public string Address => Host + ":" + Port;
+        protected MemberStatusEvent(string address, IReadOnlyCollection<string> kinds)
+        {
+            Kinds = kinds ?? throw new ArgumentNullException(nameof(kinds));
+            Address = address ?? throw new ArgumentNullException(nameof(address));
+        }
+
+        public string Address { get; }
         public string Host { get; }
         public int Port { get; }
         public IReadOnlyCollection<string> Kinds { get; }
@@ -52,6 +59,10 @@ namespace Proto.Cluster
     public class MemberLeftEvent : MemberStatusEvent
     {
         public MemberLeftEvent(string host, int port, IReadOnlyCollection<string> kinds) : base(host, port, kinds)
+        {
+        }
+
+        public MemberLeftEvent(string address, IReadOnlyCollection<string> kinds) : base(address, kinds)
         {
         }
     }

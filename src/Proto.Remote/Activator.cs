@@ -60,6 +60,10 @@ namespace Proto.Remote
                         throw;
                     }
                     break;
+                case NodeShutdownRequest msg:
+                    EventStream.Instance.Publish(msg);
+                    context.Respond(new NodeShutdownResponse { Address = msg.Address });
+                    break;
             }
             return Actor.Done;
         }

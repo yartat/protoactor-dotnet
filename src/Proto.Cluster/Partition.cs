@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,7 @@ namespace Proto.Cluster
         public static Dictionary<string, PID> KindMap = new Dictionary<string, PID>(InitialCount);
 
         private static Subscription<object> _memberStatusSub;
+        private static Subscription<object> _nodeShutdownSub;
 
         public static void Setup(string[] kinds)
         {
@@ -38,6 +40,8 @@ namespace Proto.Cluster
                     }
                 }
             });
+
+            _nodeShutdownSub = EventStream.Instance.Subscribe<NodeShutdownRequest>(ShutdownNode);
         }
 
         public static PID SpawnPartitionActor(string kind)
@@ -55,11 +59,26 @@ namespace Proto.Cluster
             }
             KindMap.Clear();
             EventStream.Instance.Unsubscribe(_memberStatusSub.Id);
+            EventStream.Instance.Unsubscribe(_nodeShutdownSub.Id);
         }
 
         public static PID PartitionForKind(string address, string kind)
         {
             return new PID(address, "partition-" + kind);
+        }
+
+        private static void ShutdownNode(NodeShutdownRequest msg)
+        {
+            var kinds = new ReadOnlyCollection<string>(msg.Kinds.ToList());
+            foreach (var kind in msg.Kinds)
+            {
+                if (KindMap.TryGetValue(kind, out var kindPid))
+                {
+                    kindPid.Tell(new MemberLeftEvent(msg.Address, kinds));
+                }
+            }
+
+            MemberList.RemoveHost(msg.Address, kinds);
         }
     }
 

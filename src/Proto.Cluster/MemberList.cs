@@ -135,6 +135,30 @@ namespace Proto.Cluster
             }
         }
 
+        public static void RemoveHost(string address, IReadOnlyCollection<string> kinds)
+        {
+            //update MemberStrategy
+            foreach (var k in kinds)
+            {
+                if (_memberStrategyByKind.TryGetValue(k, out var ms))
+                {
+                    ms.RemoveMember(address);
+                    if (ms.GetAllMembers().Count == 0)
+                        _memberStrategyByKind.Remove(k);
+                }
+            }
+
+            //notify left
+            var left = new MemberLeftEvent(address, kinds);
+            Actor.EventStream.Publish(left);
+            _members.Remove(address);
+            var endpointTerminated = new EndpointTerminatedEvent
+            {
+                Address = address
+            };
+            Actor.EventStream.Publish(endpointTerminated);
+        }
+
         private static void UpdateAndNotify(MemberStatus @new, MemberStatus old)
         {
             if (@new == null && old == null)
@@ -145,25 +169,7 @@ namespace Proto.Cluster
             if (@new == null)
             {
                 //update MemberStrategy
-                foreach (var k in old.Kinds)
-                {
-                    if (_memberStrategyByKind.TryGetValue(k, out var ms))
-                    {
-                        ms.RemoveMember(old);
-                        if (ms.GetAllMembers().Count == 0)
-                            _memberStrategyByKind.Remove(k);
-                    }
-                }
-
-                //notify left
-                var left = new MemberLeftEvent(old.Host, old.Port, old.Kinds);
-                Actor.EventStream.Publish(left);
-                _members.Remove(old.Address);
-                var endpointTerminated = new EndpointTerminatedEvent
-                {
-                    Address = old.Address
-                };
-                Actor.EventStream.Publish(endpointTerminated);
+                RemoveHost(old.Address, old.Kinds);
                 return;
             }
 

@@ -120,17 +120,33 @@ namespace Proto.Remote
             return SpawnNamedAsync(address, "", kind, timeout);
         }
 
-        public static async Task<ActorPidResponse> SpawnNamedAsync(string address, string name, string kind, TimeSpan timeout)
+        public static Task<ActorPidResponse> SpawnNamedAsync(string address, string name, string kind, TimeSpan timeout)
         {
             var activator = ActivatorForAddress(address);
 
-            var res = await activator.RequestAsync<ActorPidResponse>(new ActorPidRequest
+            return activator.RequestAsync<ActorPidResponse>(new ActorPidRequest
             {
                 Kind = kind,
                 Name = name
             }, timeout);
+        }
 
-            return res;
+        public static Task SpawnShutdown(string address, TimeSpan timeout)
+        {
+            if (ProcessRegistry.Instance.Address == address)
+            {
+                return Task.CompletedTask;
+            }
+
+            var kinds = GetKnownKinds();
+            var request = new NodeShutdownRequest
+            {
+                Address = ProcessRegistry.Instance.Address,
+            };
+            request.Kinds.Add(kinds);
+
+            var activator = ActivatorForAddress(address);
+            return activator.RequestAsync<NodeShutdownResponse>(request, timeout);
         }
 
         public static void SendMessage(PID pid, object msg, int serializerId)

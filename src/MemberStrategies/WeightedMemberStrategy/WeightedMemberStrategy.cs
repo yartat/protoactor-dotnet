@@ -62,6 +62,20 @@ namespace Proto.Cluster.WeightedMemberStrategy
             }
         }
 
+        public void RemoveMember(string address)
+        {
+            for (int i = 0; i < _members.Count; i++)
+            {
+                if (_members[i].Address == address)
+                {
+                    _members.RemoveAt(i);
+                    _wrr.UpdateRR();
+                    _rdv.UpdateRdv();
+                    return;
+                }
+            }
+        }
+
         public string GetPartition(string key) => _rdv.GetNode(key);
 
         public string GetActivator() => _wrr.GetNode();

@@ -10,6 +10,7 @@ namespace Proto.Cluster
 {
     public interface IClusterProvider
     {
+        string[] ClusterAddresses { get; }
         Task RegisterMemberAsync(string clusterName, string hostName, int port, string[] kinds, IMemberStatusValue statusValue, IMemberStatusValueSerializer serializer);
         void MonitorMemberStatusChanges();
         Task UpdateMemberStatusValueAsync(IMemberStatusValue statusValue);

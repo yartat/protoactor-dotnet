@@ -83,6 +83,12 @@ namespace Proto.Remote
                     object msg;
                     while ((msg = _userMessages.Pop()) != null)
                     {
+                        if (msg is EndpointTerminatedEvent)
+                        {
+                            m = msg;
+                            break;
+                        }
+
                         batch.Add((RemoteDeliver) msg);
                         if (batch.Count >= _batchSize)
                         {

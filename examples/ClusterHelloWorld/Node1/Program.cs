@@ -47,8 +47,7 @@ class Program
         for(var i = 0; i <= ProcessingCount; ++i)
         {
             var playerId = ItemNames[random.Next(ItemsCount)];
-            var (pid, sc) = await Cluster.GetAsync(playerId, "Player").ConfigureAwait(false);
-            var res = await pid.RequestAsync<DepositResponse>(new DepositRequest
+            var res = await Invoke<DepositRequest, DepositResponse>(playerId, new DepositRequest
             {
                 Amount = 1,
                 Currency = "UAH",
@@ -68,6 +67,27 @@ class Program
         Console.WriteLine($"Processing time is {sw.Elapsed}. Perfromance is {ProcessingCount / sw.ElapsedMilliseconds * 1000} items/sec.");
         Console.WriteLine("Press key");
         Console.ReadLine();
+    }
+
+    private static async Task<TResult> Invoke<TRequest, TResult>(string playerId, TRequest request)
+    {
+        while (true)
+        {
+            var (pid, sc) = await Cluster.GetAsync(playerId, "Player").ConfigureAwait(false);
+            while (pid == null)
+            {
+                (pid, sc) = await Cluster.GetAsync(playerId, "Player").ConfigureAwait(false);
+            }
+
+            try
+            {
+                return await pid.RequestAsync<TResult>(request).ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine($"Exception: {exception.Message}");
+            }
+        }
     }
 
     private static void StartConsulDevMode()

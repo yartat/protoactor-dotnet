@@ -76,9 +76,10 @@ namespace Proto.Cluster
         {
             if (gracefull)
             {
-                Configuration.ClusterProvider.Shutdown();
                 //This is to wait ownership transferring complete.
-                Task.Delay(2000).Wait();
+                var tasks = Configuration.ClusterProvider.ClusterAddresses.Select(x => Remote.Remote.SpawnShutdown(x, TimeSpan.FromSeconds(3)));
+                Task.WhenAll(tasks).GetAwaiter().GetResult();
+                Configuration.ClusterProvider.Shutdown();
                 MemberList.Stop();
                 PidCache.Stop();
                 Partition.Stop();
