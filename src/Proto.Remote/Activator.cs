@@ -26,14 +26,18 @@ namespace Proto.Remote
                     try
                     {
                         var pid = RootContext.Empty.SpawnNamed(props, name);
-                        var response = new ActorPidResponse{ Pid = pid };
+                        var response = new ActorPidResponse{ Pid = pid.ToRemote() };
                         context.Respond(response);
                     }
                     catch (ProcessNameExistException ex)
                     {
                         var response = new ActorPidResponse
                         {
-                            Pid = ex.Pid,
+                            Pid = new Pid
+                            {
+                                Address = ex.Pid.Address,
+                                Id =  ex.Pid.Id
+                            },
                             StatusCode = (int) ResponseStatusCode.ProcessNameAlreadyExist
                         };
                         context.Respond(response);

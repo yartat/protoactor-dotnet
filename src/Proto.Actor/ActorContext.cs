@@ -90,10 +90,7 @@ namespace Proto
         public MessageHeader Headers => MessageEnvelope.UnwrapHeader(_messageOrEnvelope);
 
         public TimeSpan ReceiveTimeout { get; private set; }
-        IReadOnlyCollection<PID> IContext.Children
-        {
-            get { return Children; }
-        }
+        IReadOnlyCollection<PID> IContext.Children => Children;
 
         public void Stash() => EnsureExtras().Stash.Push(Message);
 

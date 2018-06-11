@@ -15,6 +15,8 @@ namespace Proto
     {
         private Process _process;
 
+        public PID(){}
+        
         public PID(string address, string id)
         {
             Address = address;

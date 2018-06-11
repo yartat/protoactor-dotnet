@@ -71,7 +71,8 @@ namespace Proto.Remote
                         {
                             header = new Proto.MessageHeader(envelope.MessageHeader.HeaderData);
                         }
-                        var localEnvelope = new Proto.MessageEnvelope(message, envelope.Sender, header);
+                        var sender = envelope.Sender != null ? new PID(envelope.Sender.Address, envelope.Sender.Id) : null;
+                        var localEnvelope = new Proto.MessageEnvelope(message, sender, header);
                         RootContext.Empty.Send(target, localEnvelope);
                     }
                 }

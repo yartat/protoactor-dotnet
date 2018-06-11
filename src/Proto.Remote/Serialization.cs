@@ -92,7 +92,6 @@ namespace Proto.Remote
 
         static Serialization()
         {
-            RegisterFileDescriptor(Proto.ProtosReflection.Descriptor);
             RegisterFileDescriptor(ProtosReflection.Descriptor);
             RegisterSerializer(ProtobufSerializer,true);
             RegisterSerializer(JsonSerializer);

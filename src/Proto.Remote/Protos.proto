@@ -3,7 +3,10 @@ syntax = "proto3";
 package remote;
 option csharp_namespace = "Proto.Remote";
 
-import "Proto.Actor/protos.proto";
+message Pid {
+    string Address = 1;
+    string Id = 2;
+}
 
 message MessageBatch {
   repeated string type_names = 1;
@@ -15,7 +18,7 @@ message MessageEnvelope {
   int32 type_id = 1;
   bytes message_data = 2;
   int32 target = 3;
-  actor.PID sender = 4;
+  Pid sender = 4;
   int32 serializer_id = 5;
   MessageHeader message_header = 6;
 }
@@ -30,7 +33,7 @@ message ActorPidRequest {
 }
 
 message ActorPidResponse {
-  actor.PID pid = 1;
+  Pid pid = 1;
   int32 status_code = 2;
 }
 

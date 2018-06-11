@@ -86,7 +86,7 @@ namespace Proto.Remote
                         var envelope = new MessageEnvelope
                         {
                             MessageData = bytes,
-                            Sender = rd.Sender,
+                            Sender =  rd.Sender.ToRemote(),
                             Target = targetId,
                             TypeId = typeId,
                             SerializerId = serializerId,
