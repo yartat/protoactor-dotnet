@@ -18,6 +18,7 @@ namespace Proto.Cluster
     {
         private const int InitialCount = 1000000;
         public static Dictionary<string, PID> KindMap = new Dictionary<string, PID>(InitialCount);
+        private static readonly ILogger Logger = Log.CreateLogger<PartitionActor>();
 
         private static Subscription<object> _memberStatusSub;
         private static Subscription<object> _nodeShutdownSub;
@@ -69,6 +70,7 @@ namespace Proto.Cluster
 
         private static void ShutdownNode(NodeShutdownRequest msg)
         {
+            Logger.LogInformation($"Shutdown {msg.Address}...");
             var kinds = new ReadOnlyCollection<string>(msg.Kinds.ToList());
             foreach (var kind in msg.Kinds)
             {

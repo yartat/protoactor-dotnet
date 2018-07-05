@@ -25,9 +25,10 @@ namespace Client.Controllers
         private readonly ICluster _cluster;
 
         /// <summary>
-        /// Initializes new instance of the <see cref="CurrencyController"/> class;
+        /// Initializes new instance of the <see cref="CurrencyController" /> class;
         /// </summary>
-        /// <param name="logger"></param>
+        /// <param name="cluster">The cluster.</param>
+        /// <param name="logger">The logger.</param>
         public CurrencyController(
             ICluster cluster,
             ILogger<CurrencyController> logger)

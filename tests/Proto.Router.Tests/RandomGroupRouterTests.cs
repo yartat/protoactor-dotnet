@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Proto.Router.Messages;
 using Proto.TestFixtures;
@@ -44,7 +42,7 @@ namespace Proto.Router.Tests
             // results are random! (but consistent due to seeding) As MyTestActor only stores the most
             // recent message, "1" is overwritten by a subsequent message. 
             Assert.Equal("2", await routee1.RequestAsync<string>("received?", _timeout));
-            Assert.Equal(null, await routee2.RequestAsync<string>("received?", _timeout));
+            Assert.Null(await routee2.RequestAsync<string>("received?", _timeout));
             Assert.Equal("3", await routee3.RequestAsync<string>("received?", _timeout));
             Assert.Equal("4", await routee4.RequestAsync<string>("received?", _timeout));
         }
@@ -62,7 +60,7 @@ namespace Proto.Router.Tests
                 router.Tell(i.ToString());
             }
             
-            Assert.Equal(null, await routee1.RequestAsync<string>("received?", _timeout));
+            Assert.Null(await routee1.RequestAsync<string>("received?", _timeout));
         }
 
         [Fact]

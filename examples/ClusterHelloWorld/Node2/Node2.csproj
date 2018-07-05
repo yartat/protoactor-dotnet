@@ -1,20 +1,25 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DefineConstants>PERFORMANCE_TEST</DefineConstants>
   </PropertyGroup>
+
   <ItemGroup>
     <Content Include="runtimeconfig.template.json" />
   </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.5.1" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="2.0.1" />
-    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
-    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.4" />
+    <PackageReference Include="Google.Protobuf" Version="3.6.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="2.1.1" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.6" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\ClusterProviders\Proto.Cluster.Consul\Proto.Cluster.Consul.csproj" />
     <ProjectReference Include="..\..\..\src\Proto.Actor\Proto.Actor.csproj" />
@@ -23,4 +28,5 @@
     <ProjectReference Include="..\..\..\src\Proto.Remote\Proto.Remote.csproj" />
     <ProjectReference Include="..\Messages\Messages.csproj" />
   </ItemGroup>
+
 </Project>

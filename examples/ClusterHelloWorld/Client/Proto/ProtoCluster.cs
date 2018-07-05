@@ -7,8 +7,18 @@ using Proto.Remote;
 
 namespace Client.Proto
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Client.Proto.ICluster" />
     public class ProtoCluster : ICluster
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProtoCluster"/> class.
+        /// </summary>
+        /// <param name="clusterName">Name of the cluster.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="consulUri">The consul URI.</param>
         public ProtoCluster(string clusterName, int port, Uri consulUri)
         {
             Serialization.RegisterFileDescriptor(Messages.ProtosReflection.Descriptor);
@@ -16,11 +26,13 @@ namespace Client.Proto
             WaitForUpdateNodes().Wait();
         }
 
+        /// <inheritdoc />
         public Task<DepositResponse> MakeDeposit(string id, string type, DepositRequest request)
         {
             return Invoke<DepositRequest, DepositResponse>(id, type, request);
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             Cluster.Shutdown();

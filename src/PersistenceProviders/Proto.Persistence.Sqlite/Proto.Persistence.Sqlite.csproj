@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.5;netstandard2.0;net46</TargetFrameworks>
-    <Version>0.2.0.7-dev</Version>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.2.0.8-dev</Version>
     <Authors>Proto.Actor Team</Authors>
     <Company>Proto.Actor Team</Company>
     <Description>Ultra-fast distributed actors for .NET.</Description>
@@ -15,16 +16,9 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' Or '$(TargetFramework)' == 'net46' ">
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="1.1.1" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.0.1" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,4 +26,5 @@
     <ProjectReference Include="..\..\Proto.Mailbox\Proto.Mailbox.csproj" />
     <ProjectReference Include="..\..\Proto.Persistence\Proto.Persistence.csproj" />
   </ItemGroup>
+
 </Project>
