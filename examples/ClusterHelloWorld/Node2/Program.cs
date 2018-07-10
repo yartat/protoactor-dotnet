@@ -16,6 +16,7 @@ using Node2.Storage.Elastic;
 using Proto;
 using Proto.Cluster;
 using Proto.Cluster.Consul;
+using Proto.Cluster.Etcd;
 using Proto.Remote;
 using ProtosReflection = Messages.ProtosReflection;
 
@@ -23,6 +24,7 @@ namespace Node2
 {
     public class PlayerActor : IActor
     {
+        private static long Items = 0;
         private readonly ElasticRepository _playerRepository;
         private readonly ElasticRepository _depositRepository;
 
@@ -92,6 +94,11 @@ namespace Node2
                         new StorageDataItem {Value = JsonConvert.SerializeObject(deposit)});
 
                     await Task.WhenAll(playerTask, depositTask).ConfigureAwait(false);
+                    var currenctItemCount = Interlocked.Increment(ref Items);
+                    if (currenctItemCount % 100 == 0)
+                    {
+                        Console.WriteLine($"Processed {currenctItemCount} requests");
+                    }
 #endif
                     var response = new DepositResponse
                     {
@@ -124,7 +131,7 @@ namespace Node2
 
             var parsedArgs = parseArgs(args);
             Remote.RegisterKnownKind("Player", props);
-            Cluster.Start("MyCluster", parsedArgs.ServerName, parsedArgs.Port, new ConsulProvider(new ConsulProviderOptions(), c => c.Address = new Uri("http://" + parsedArgs.ConsulUrl + ":8500/")));
+            Cluster.Start("MyCluster", parsedArgs.ServerName, parsedArgs.Port, new EtcdProvider(new EtcdProviderOptions(), opt => opt.Hosts = new[] { new Uri("http://192.168.1.102:2379") }));
             Console.WriteLine("Started.");
             var exitEvent = new ManualResetEvent(false);
             Console.CancelKeyPress += (sender, eventArgs) =>
