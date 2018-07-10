@@ -15,6 +15,7 @@ using Google.Protobuf.WellKnownTypes;
 using Messages;
 using Proto.Cluster;
 using Proto.Cluster.Consul;
+using Proto.Cluster.Etcd;
 using Proto.Remote;
 using ProtosReflection = Messages.ProtosReflection;
 
@@ -34,7 +35,7 @@ class Program
 
         Serialization.RegisterFileDescriptor(ProtosReflection.Descriptor);
         var parsedArgs = parseArgs(args);
-        Cluster.Start("MyCluster", parsedArgs.ServerName, 12001, new ConsulProvider(new ConsulProviderOptions(), c => c.Address = new Uri("http://" + parsedArgs.ConsulUrl + ":8500/")));
+        Cluster.Start("MyCluster", parsedArgs.ServerName, 12001, new EtcdProvider(new EtcdProviderOptions(), options => options.Hosts = new []{ new Uri("http://192.168.1.102:2379") }));
         var random = new Random();
         var (t, s) = await Cluster.GetAsync(ItemNames[0], "Player").ConfigureAwait(false);
         while (t == null)
@@ -56,9 +57,10 @@ class Program
                 Kiosk = "Web",
                 PlayerId = playerId
             }).ConfigureAwait(false);
-            if (i % 100000 == 0)
+            if (i % 100 == 0)
             {
-                Console.WriteLine($"Processed items: {i}");
+                Console.CursorLeft = 0;
+                Console.Write($"Processed items: {i}");
             }
         }
 
