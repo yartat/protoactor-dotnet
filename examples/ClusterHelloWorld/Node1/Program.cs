@@ -13,10 +13,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Messages;
+using Proto;
 using Proto.Cluster;
 using Proto.Cluster.Consul;
 using Proto.Cluster.Etcd;
 using Proto.Remote;
+using Process = System.Diagnostics.Process;
 using ProtosReflection = Messages.ProtosReflection;
 
 class Program
@@ -83,7 +85,7 @@ class Program
 
             try
             {
-                return await pid.RequestAsync<TResult>(request).ConfigureAwait(false);
+                return await RootContext.Empty.RequestAsync<TResult>(pid, request).ConfigureAwait(false);
             }
             catch (Exception exception)
             {

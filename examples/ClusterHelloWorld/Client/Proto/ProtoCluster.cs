@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Messages;
+using Proto;
 using Proto.Cluster;
 using Proto.Cluster.Consul;
 using Proto.Remote;
@@ -41,7 +42,7 @@ namespace Client.Proto
         private async Task<TResponse> Invoke<TRequest, TResponse>(string id, string type, TRequest request)
         {
             var (pid, sc) = await Cluster.GetAsync(id, type).ConfigureAwait(false);
-            return await pid.RequestAsync<TResponse>(request).ConfigureAwait(false);
+            return await RootContext.Empty.RequestAsync<TResponse>(pid, request).ConfigureAwait(false);
         }
 
         private async Task WaitForUpdateNodes()

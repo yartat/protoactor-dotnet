@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 //   <copyright file="Remote.cs" company="Asynkron HB">
-//       Copyright (C) 2015-2017 Asynkron HB All rights reserved
+//       Copyright (C) 2015-2018 Asynkron HB All rights reserved
 //   </copyright>
 // -----------------------------------------------------------------------
 
@@ -17,12 +17,12 @@ namespace Proto.Remote
     {
         private static readonly ILogger Logger = Log.CreateLogger(typeof(Remote).FullName);
 
-        private static Server server;
+        private static Server _server;
         private static readonly Dictionary<string, Props> Kinds = new Dictionary<string, Props>();
         public static RemoteConfig RemoteConfig { get; private set; }
         public static PID ActivatorPid { get; private set; }
 
-        private static EndpointReader endpointReader;
+        private static EndpointReader _endpointReader;
 
         public static string[] GetKnownKinds()
         {
@@ -54,15 +54,15 @@ namespace Proto.Remote
             ProcessRegistry.Instance.RegisterHostResolver(pid => new RemoteProcess(pid));
 
             EndpointManager.Start();
-            endpointReader = new EndpointReader();
-            server = new Server
+            _endpointReader = new EndpointReader();
+            _server = new Server
             {
-                Services = { Remoting.BindService(endpointReader) },
+                Services = { Remoting.BindService(_endpointReader) },
                 Ports = { new ServerPort(hostname, port, config.ServerCredentials) }
             };
-            server.Start();
+            _server.Start();
 
-            var boundPort = server.Ports.Single().BoundPort;
+            var boundPort = _server.Ports.Single().BoundPort;
             var boundAddr = $"{hostname}:{boundPort}";
             var addr = $"{config.AdvertisedHostname??hostname}:{config.AdvertisedPort?? boundPort}";
             ProcessRegistry.Instance.Address = addr;
@@ -77,37 +77,35 @@ namespace Proto.Remote
             try
             {
                 EndpointManager.Stop();
-                endpointReader.Suspend(true);
-                StopActivator().GetAwaiter().GetResult();
+                _endpointReader.Suspend(true);
+                StopActivator();
                 if (gracefull)
                 {
-                    server.ShutdownAsync().Wait(1000);
+                    _server.ShutdownAsync().Wait(10000);
                 }
                 else
                 {
-                    server.KillAsync().Wait(1000);
+                    _server.KillAsync().Wait(10000);
                 }
-
-                Logger.LogDebug(
-                    $"Proto.Actor server stopped on {ProcessRegistry.Instance.Address}. Graceful:{gracefull}");
+                
+                Logger.LogDebug($"Proto.Actor server stopped on {ProcessRegistry.Instance.Address}. Graceful:{gracefull}");
             }
             catch (Exception ex)
             {
-                server.KillAsync().Wait(1000);
-                Logger.LogError(
-                    $"Proto.Actor server stopped on {ProcessRegistry.Instance.Address} with error:\n{ex.Message}");
+                _server.KillAsync().Wait(1000);
+                Logger.LogError($"Proto.Actor server stopped on {ProcessRegistry.Instance.Address} with error:\n{ex.Message}");
             }
         }
 
         private static void SpawnActivator()
         {
-            var props = Actor.FromProducer(() => new Activator()).WithGuardianSupervisorStrategy(Supervision.AlwaysRestartStrategy);
-            ActivatorPid = Actor.SpawnNamed(props, "activator");
+            var props = Props.FromProducer(() => new Activator()).WithGuardianSupervisorStrategy(Supervision.AlwaysRestartStrategy);
+            ActivatorPid = RootContext.Empty.SpawnNamed(props, "activator");
         }
 
-        private static Task StopActivator()
+        private static void StopActivator()
         {
-            return ActivatorPid.StopAsync();
+            ActivatorPid.Stop();
         }
 
         public static PID ActivatorForAddress(string address)
@@ -124,11 +122,14 @@ namespace Proto.Remote
         {
             var activator = ActivatorForAddress(address);
 
-            return activator.RequestAsync<ActorPidResponse>(new ActorPidRequest
-            {
-                Kind = kind,
-                Name = name
-            }, timeout);
+            return RootContext.Empty.RequestAsync<ActorPidResponse>(
+                activator,
+                new ActorPidRequest
+                {
+                    Kind = kind,
+                    Name = name
+                }, 
+                timeout);
         }
 
         public static Task SpawnShutdown(string address, TimeSpan timeout)
@@ -146,7 +147,7 @@ namespace Proto.Remote
             request.Kinds.Add(kinds);
 
             var activator = ActivatorForAddress(address);
-            return activator.RequestAsync<NodeShutdownResponse>(request, timeout);
+            return RootContext.Empty.RequestAsync<NodeShutdownResponse>(activator, request, timeout);
         }
 
         public static void SendMessage(PID pid, object msg, int serializerId)

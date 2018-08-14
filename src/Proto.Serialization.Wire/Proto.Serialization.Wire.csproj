@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <Version>0.2.0.8-dev</Version>
+    <RootNamespace>Proto.Serialization.Wire</RootNamespace>
     <OutputType>library</OutputType>
     <Authors>Proto.Actor Team</Authors>
     <Description>Ultra-fast distributed actors for .NET.</Description>
@@ -13,8 +14,10 @@
     <PackageTags>actors actor model concurrency proto protoactor</PackageTags>
     <AssemblyName>Proto.Serialization.Wire</AssemblyName>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>

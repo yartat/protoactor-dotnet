@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 //   <copyright file="PidCache.cs" company="Asynkron HB">
-//       Copyright (C) 2015-2017 Asynkron HB All rights reserved
+//       Copyright (C) 2015-2018 Asynkron HB All rights reserved
 //   </copyright>
 // -----------------------------------------------------------------------
 
@@ -28,8 +28,8 @@ namespace Proto.Cluster
 
         internal static void Setup()
         {
-            var props = Actor.FromProducer(() => new PidCacheWatcher()).WithGuardianSupervisorStrategy(Supervision.AlwaysRestartStrategy);
-            _watcher = Actor.SpawnNamed(props, "PidCacheWatcher");
+            var props = Props.FromProducer(() => new PidCacheWatcher()).WithGuardianSupervisorStrategy(Supervision.AlwaysRestartStrategy);
+            _watcher = RootContext.Empty.SpawnNamed(props, "PidCacheWatcher");
             _clusterTopologyEvnSub = Actor.EventStream.Subscribe<MemberStatusEvent>(OnMemberStatusEvent);
         }
 
@@ -58,7 +58,7 @@ namespace Proto.Cluster
             {
                 var key = pid.ToShortString();
                 ReverseCache.TryAdd(key, name);
-                _watcher.Tell(new WatchPidRequest(pid));
+                RootContext.Empty.Send(_watcher, new WatchPidRequest(pid));
                 return true;
             }
             return false;

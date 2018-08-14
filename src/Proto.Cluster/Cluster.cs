@@ -1,6 +1,6 @@
 ﻿// -----------------------------------------------------------------------
 //   <copyright file="Cluster.cs" company="Asynkron HB">
-//       Copyright (C) 2015-2017 Asynkron HB All rights reserved
+//       Copyright (C) 2015-2018 Asynkron HB All rights reserved
 //   </copyright>
 // -----------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ namespace Proto.Cluster
     {
         private static readonly ILogger Logger = Log.CreateLogger(typeof(Cluster).FullName);
 
-        internal static ClusterConfig Configuration;
+        internal static ClusterConfig Config;
 
         public static void Start(
             string clusterName, 
@@ -33,24 +33,24 @@ namespace Proto.Cluster
 
         public static void StartWithConfig(ClusterConfig config)
         {
-            Configuration = config;
+            Config = config;
 
-            if (Configuration.Address == "0.0.0.0" && string.IsNullOrEmpty(Configuration.RemoteConfig.AdvertisedHostname))
+            if (Config.Address == "0.0.0.0" && string.IsNullOrEmpty(Config.RemoteConfig.AdvertisedHostname))
             {
-                Configuration.RemoteConfig.AdvertisedHostname = GetLocalIpAddress().ToString();
+                Config.RemoteConfig.AdvertisedHostname = GetLocalIpAddress().ToString();
             }
 
-            if (Configuration.RemoteConfig.AdvertisedPort == null && !string.IsNullOrEmpty(Configuration.RemoteConfig.AdvertisedHostname))
+            if (Config.RemoteConfig.AdvertisedPort == null && !string.IsNullOrEmpty(Config.RemoteConfig.AdvertisedHostname))
             {
-                Configuration.RemoteConfig.AdvertisedPort = Configuration.Port;
+                Config.RemoteConfig.AdvertisedPort = Config.Port;
             }
 
-            Remote.Remote.Start(Configuration.Address, Configuration.Port, Configuration.RemoteConfig);
+            Remote.Remote.Start(Config.Address, Config.Port, Config.RemoteConfig);
         
             Serialization.RegisterFileDescriptor(ProtosReflection.Descriptor);
             Logger.LogInformation("Starting cluster");
-            var hostAddress = Configuration.RemoteConfig.AdvertisedHostname;
-            var hostPort = Configuration.RemoteConfig.AdvertisedPort;
+            var hostAddress = Config.RemoteConfig.AdvertisedHostname;
+            var hostPort = Config.RemoteConfig.AdvertisedPort;
             var (h, p) = ParseAddress(ProcessRegistry.Instance.Address);
             if (string.IsNullOrEmpty(hostAddress))
             {
@@ -66,8 +66,8 @@ namespace Proto.Cluster
             Partition.Setup(kinds);
             PidCache.Setup();
             MemberList.Setup();
-            Configuration.ClusterProvider.RegisterMemberAsync(Configuration.Name, hostAddress, hostPort.Value, kinds, config.InitialMemberStatusValue, config.MemberStatusValueSerializer).Wait();
-            Configuration.ClusterProvider.MonitorMemberStatusChanges();
+            Config.ClusterProvider.RegisterMemberAsync(Config.Name, hostAddress, hostPort.Value, kinds, config.InitialMemberStatusValue, config.MemberStatusValueSerializer).Wait();
+            Config.ClusterProvider.MonitorMemberStatusChanges();
 
             Logger.LogInformation("Cluster was started successfully");
         }
@@ -77,9 +77,9 @@ namespace Proto.Cluster
             if (gracefull)
             {
                 //This is to wait ownership transferring complete.
-                var tasks = Configuration.ClusterProvider.ClusterAddresses.Select(x => Remote.Remote.SpawnShutdown(x, TimeSpan.FromSeconds(3)));
+                var tasks = Config.ClusterProvider.ClusterAddresses.Select(x => Remote.Remote.SpawnShutdown(x, TimeSpan.FromSeconds(3)));
                 Task.WhenAll(tasks).GetAwaiter().GetResult();
-                Configuration.ClusterProvider.Shutdown();
+                Config.ClusterProvider.Shutdown();
                 MemberList.Stop();
                 PidCache.Stop();
                 Partition.Stop();
@@ -125,8 +125,8 @@ namespace Proto.Cluster
             try
             {
                 var resp = ct == CancellationToken.None
-                           ? await remotePid.RequestAsync<ActorPidResponse>(req, Configuration.TimeoutTimespan)
-                           : await remotePid.RequestAsync<ActorPidResponse>(req, ct);
+                           ? await RootContext.Empty.RequestAsync<ActorPidResponse>(remotePid, req, Config.TimeoutTimespan)
+                           : await RootContext.Empty.RequestAsync<ActorPidResponse>(remotePid, req, ct);
                 var status = (ResponseStatusCode) resp.StatusCode;
                 switch (status)
                 {

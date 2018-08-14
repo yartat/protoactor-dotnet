@@ -127,7 +127,7 @@ namespace Node2
             var client = new ElasticSimpleClient(new Uri(options.Url));
             var player = new ElasticRepository(client, options, "player");
             var deposit = new ElasticRepository(client, options, "deposit");
-            var props = Actor.FromProducer(() => new PlayerActor(player, deposit));
+            var props = Props.FromProducer(() => new PlayerActor(player, deposit));
 
             var parsedArgs = parseArgs(args);
             Remote.RegisterKnownKind("Player", props);

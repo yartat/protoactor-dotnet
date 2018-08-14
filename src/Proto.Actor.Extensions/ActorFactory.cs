@@ -55,8 +55,7 @@ namespace Proto
         private PID CreateActor<T>(string id, IContext parent, Func<Props> producer)
             where T : IActor
         {
-            Func<Props, Props> props;
-            if (!_actorPropsRegistry.RegisteredProps.TryGetValue(typeof(T), out props))
+            if (!_actorPropsRegistry.RegisteredProps.TryGetValue(typeof(T), out var props))
             {
                 props = x => x;
             }
@@ -64,7 +63,7 @@ namespace Proto
             var props2 = props(producer());
             if (parent == null)
             {
-                return Actor.SpawnNamed(props2, id);
+                return RootContext.Empty.SpawnNamed(props2, id);
             }
             return parent.SpawnNamed(props2, id);
         }
