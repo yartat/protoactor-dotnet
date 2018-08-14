@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using Proto;
 using Proto.Mailbox;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
-using BenchmarkDotNet.Attributes.Jobs;
 
 [SimpleJob(launchCount: 1, warmupCount: 3, targetCount: 5, invocationCount: 100, id: "QuickJob")]
 [ShortRunJob]
