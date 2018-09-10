@@ -20,14 +20,14 @@ namespace Client.Controllers
     [ServiceFilter(typeof(ProcessingExceptionFilter))]
     public class CurrencyController : Controller
     {
-        private const string GeneralProduct = "GENERAL";
         private readonly ILogger _logger;
         private readonly ICluster _cluster;
 
         /// <summary>
-        /// Initializes new instance of the <see cref="CurrencyController"/> class;
+        /// Initializes new instance of the <see cref="CurrencyController" /> class;
         /// </summary>
-        /// <param name="logger"></param>
+        /// <param name="cluster">The cluster instance.</param>
+        /// <param name="logger">The logger instance.</param>
         public CurrencyController(
             ICluster cluster,
             ILogger<CurrencyController> logger)
@@ -61,7 +61,7 @@ namespace Client.Controllers
                         Id = request.TransactionId,
                         Amount = (double?) request.Amount ?? 0D,
                         Currency = request.CurrencyCode,
-                        Date = request.CreatedOn.Value.ToTimestamp(),
+                        Date = request.CreatedOn != null ? request.CreatedOn.Value.ToTimestamp() : Timestamp.FromDateTime(DateTime.UtcNow),
                         Manual = request.Manual ?? false,
                         PlayerId = request.PlayerId,
                         Kiosk = request.KioskId

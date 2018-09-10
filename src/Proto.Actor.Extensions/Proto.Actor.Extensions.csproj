@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFrameworks>netstandard1.5;netstandard2.0;net46</TargetFrameworks>
-    <Version>0.2.0.7-dev</Version>
+    <Version>0.2.0.7-gamma</Version>
     <OutputType>library</OutputType>
     <Authors>Proto.Actor Team</Authors>
     <Description>Ultra-fast distributed actors for .NET.</Description>
@@ -20,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using BetLab.Common.Logging;
-using BetLab.Logging.Logstash;
+using BetLab.Logging.Fast;
 using Microsoft.Extensions.Logging;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using BetLabLogLevel = BetLab.Common.Logging.LogLevel;
@@ -15,7 +15,7 @@ namespace Client.Logging
     /// </summary>
     public class CoreLoggerProvider : ILoggerProvider
     {
-        private LogLevel _betlabLogLevel;
+        private readonly LogLevel _betlabLogLevel;
 
         /// <summary>
         /// Initializes new instance of the <see cref="CoreLoggerProvider"/> class.
@@ -24,7 +24,7 @@ namespace Client.Logging
         /// <param name="loggerOptions">The logger options from configuration.</param>
         public CoreLoggerProvider(string environmentName, LoggerOptions loggerOptions)
         {
-            var logstashFactory = new LogstashFactory(loggerOptions.LogstashIndex, loggerOptions.ElasticAddress)
+            var logstashFactory = new FastFileLoggerFactory("core", "test")
                 .AddContextProperty("Environment", environmentName);
             Logger.SetLoggerFactory(logstashFactory);
 
@@ -36,15 +36,11 @@ namespace Client.Logging
         {
         }
 
-        /// <summary>
-        /// Creates logger with specified <paramref name="categoryName"/>
-        /// </summary>
-        /// <param name="categoryName">The logger category name.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public ILogger CreateLogger(string categoryName) =>
             new CoreLogger(categoryName, _betlabLogLevel);
 
-        private LogLevel GetBetLabLogLevel(LoggerOptions loggerOptions)
+        private static LogLevel GetBetLabLogLevel(LoggerOptions loggerOptions)
         {
             LogLevel defaultLevel = LogLevel.Information;
             loggerOptions?.LogLevels?.TryGetValue("Default", out defaultLevel);
@@ -71,23 +67,11 @@ namespace Client.Logging
             _log = Logger.Create(Type.GetType(categoryName));
         }
 
-        /// <summary>
-        /// Check if logger is enabled.
-        /// </summary>
-        /// <param name="logLevel"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public bool IsEnabled(LogLevel logLevel) =>
             logLevel >= _logLevel;
 
-        /// <summary>
-        /// Logs specified data
-        /// </summary>
-        /// <typeparam name="TState"></typeparam>
-        /// <param name="logLevel"></param>
-        /// <param name="eventId"></param>
-        /// <param name="state"></param>
-        /// <param name="exception"></param>
-        /// <param name="formatter"></param>
+        /// <inheritdoc />
         public void Log<TState>(LogLevel logLevel, EventId eventId,
             TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
@@ -100,12 +84,7 @@ namespace Client.Logging
             _log.Log(GetBetLabLogLevel(logLevel), exception, msg);
         }
 
-        /// <summary>
-        /// Starts logger scope
-        /// </summary>
-        /// <typeparam name="TState"></typeparam>
-        /// <param name="state"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IDisposable BeginScope<TState>(TState state)
         {
             return
@@ -129,12 +108,12 @@ namespace Client.Logging
                     x => _log.Context.PushProperty(x.Key, x.Value));
         }
 
-        private IDisposable GetScopeContext(string state, Func<string, IDisposable> prop) =>
+        private static IDisposable GetScopeContext(string state, Func<string, IDisposable> prop) =>
             string.IsNullOrEmpty(state) || prop == null
                 ? null
                 : new CoreLoggerScopeContext(new[] { prop(state) });
 
-        private IDisposable GetScopeContext<TState>(IEnumerable<TState> state, Func<TState, IDisposable> prop)
+        private static IDisposable GetScopeContext<TState>(IEnumerable<TState> state, Func<TState, IDisposable> prop)
         {
             if (state == null || prop == null)
                 return null;
@@ -192,20 +171,25 @@ namespace Client.Logging
                 [LogLevel.Error] = BetLabLogLevel.Error,
                 [LogLevel.Critical] = BetLabLogLevel.Fatal,
             };
-            BetLabLogLevel betlabLogLevel;
-            if (!logLevelsMap.TryGetValue(logLevel, out betlabLogLevel))
-                return BetLabLogLevel.Verbose;
-            return betlabLogLevel;
+
+            return !logLevelsMap.TryGetValue(logLevel, out var betlabLogLevel) ? 
+                BetLabLogLevel.Verbose : 
+                betlabLogLevel;
         }
     }
 
-    class CoreLoggerScopeContext : IDisposable
+    internal class CoreLoggerScopeContext : IDisposable
     {
         private readonly IEnumerable<IDisposable> _properties;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CoreLoggerScopeContext"/> class.
+        /// </summary>
+        /// <param name="properties">The properties.</param>
         public CoreLoggerScopeContext(IEnumerable<IDisposable> properties) =>
             _properties = properties;
 
+        /// <inheritdoc />
         public void Dispose()
         {
             if (_properties == null)

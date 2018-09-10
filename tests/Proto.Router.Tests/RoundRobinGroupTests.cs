@@ -21,8 +21,8 @@ namespace Proto.Router.Tests
 
             // only routee1 has received the message
             Assert.Equal("1", await routee1.RequestAsync<string>("received?", _timeout));
-            Assert.Equal(null, await routee2.RequestAsync<string>("received?", _timeout));
-            Assert.Equal(null, await routee3.RequestAsync<string>("received?", _timeout));
+            Assert.Null(await routee2.RequestAsync<string>("received?", _timeout));
+            Assert.Null(await routee3.RequestAsync<string>("received?", _timeout));
 
             router.Tell("2");
             router.Tell("3");

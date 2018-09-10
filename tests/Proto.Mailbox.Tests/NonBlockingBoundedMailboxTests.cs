@@ -27,7 +27,7 @@ namespace Proto.Mailbox.Tests
                 mailbox.Push(i);
             }
             
-            Assert.Equal(overflowActionCallCount, 10);
+            Assert.Equal(10, overflowActionCallCount);
         }
 
         [Fact]

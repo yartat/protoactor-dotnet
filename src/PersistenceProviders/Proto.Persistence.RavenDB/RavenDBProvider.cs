@@ -99,23 +99,35 @@ namespace Proto.Persistence.RavenDB
             }
         }
 
+#if NET46
         public async Task DeleteEventsAsync(string actorName, long inclusiveToIndex)
+#else
+        public Task DeleteEventsAsync(string actorName, long inclusiveToIndex)
+#endif
         {
             var indexName = "DeleteEventIndex";
 
             var indexQuery = new IndexQuery { Query = $"ActorName:{actorName} AND Index_Range:[Lx0 TO Lx{inclusiveToIndex}]" };
 #if NET46
             Operation operation = await _store.AsyncDatabaseCommands.DeleteByIndexAsync(indexName, indexQuery);
+#else
+            return Task.CompletedTask;
 #endif
         }
 
+#if NET46
         public async Task DeleteSnapshotsAsync(string actorName, long inclusiveToIndex)
+#else
+        public Task DeleteSnapshotsAsync(string actorName, long inclusiveToIndex)
+#endif
         {
             var indexName = "DeleteSnapshotIndex";
 
             var indexQuery = new IndexQuery { Query = $"ActorName:{actorName} AND Index_Range:[Lx0 TO Lx{inclusiveToIndex}]" };
 #if NET46
             Operation operation = await _store.AsyncDatabaseCommands.DeleteByIndexAsync(indexName, indexQuery);
+#else
+            return Task.CompletedTask;
 #endif
         }
     }

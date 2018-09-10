@@ -18,7 +18,7 @@ namespace Proto.Persistence.Tests
             await providerState
                 .GetEventsAsync(actorId, 0, long.MaxValue, o =>
                 {
-                    Assert.IsType(typeof(Multiplied), o);
+                    Assert.IsType<Multiplied>(o);
                     Assert.Equal(2, (o as Multiplied).Amount);
                 });
         }
@@ -43,7 +43,7 @@ namespace Proto.Persistence.Tests
             var events = new List<object>();
             await providerState.GetEventsAsync(actorId, 0, long.MaxValue, v => events.Add(v));
 
-            Assert.Equal(0, events.Count);
+            Assert.Empty(events);
         }
 
         [Fact]
@@ -219,9 +219,9 @@ namespace Proto.Persistence.Tests
             var eventStoreMessages = new List<object>();
             var snapshotStoreMessages = new List<object>();
             await eventStore.GetEventsAsync(actorId, 0, 1, msg => eventStoreMessages.Add(msg));
-            Assert.Equal(1, eventStoreMessages.Count);
+            Assert.Single(eventStoreMessages);
             await snapshotStore.GetEventsAsync(actorId, 0, 1, msg => snapshotStoreMessages.Add(msg));
-            Assert.Equal(0, snapshotStoreMessages.Count);
+            Assert.Empty(snapshotStoreMessages);
         }
         
         private (PID pid, Props props, string actorId, IProvider provider) CreateTestActor()

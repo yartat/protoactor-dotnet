@@ -9,13 +9,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Messages;
+#if !PERFORMANCE_TEST
 using Newtonsoft.Json;
+#endif
 using Node2.Contracts;
 using Node2.Storage;
 using Node2.Storage.Elastic;
 using Proto;
 using Proto.Cluster;
-using Proto.Cluster.Consul;
 using Proto.Cluster.Etcd;
 using Proto.Remote;
 using ProtosReflection = Messages.ProtosReflection;
@@ -24,19 +25,28 @@ namespace Node2
 {
     public class PlayerActor : IActor
     {
+#if !PERFORMANCE_TEST
         private static long Items = 0;
         private readonly ElasticRepository _playerRepository;
         private readonly ElasticRepository _depositRepository;
+#endif
 
         private Dictionary<string, double> Balances { get; set; }
 
         public PlayerActor(ElasticRepository playerRepository, ElasticRepository depositRepository)
         {
+#if !PERFORMANCE_TEST
             _playerRepository = playerRepository;
             _depositRepository = depositRepository;
+#endif
         }
 
+#if PERFORMANCE_TEST
+        public Task ReceiveAsync(IContext context)
+#else
         public async Task ReceiveAsync(IContext context)
+#endif
+
         {
             switch (context.Message)
             {
@@ -51,14 +61,10 @@ namespace Node2
                             ? JsonConvert.DeserializeObject<Dictionary<string, double>>(balanceDoc.Value)
                             : new Dictionary<string, double>();
 #endif
-
                     }
 
-#if PERFORMANCE_TEST
-                    StorageDataItem depositDocument = null;
-#else
+#if !PERFORMANCE_TEST
                     var depositDocument = await _depositRepository.GetDocumentAsync(request.Id).ConfigureAwait(false);
-#endif
                     if (depositDocument != null)
                     {
                         var item = JsonConvert.DeserializeObject<DepositTransaction>(depositDocument.Value);
@@ -71,6 +77,7 @@ namespace Node2
                         context.Respond(r);
                         break;
                     }
+#endif
 
                     Balances.TryGetValue(request.Currency, out var value);
                     value += request.Amount;
@@ -108,6 +115,10 @@ namespace Node2
                     context.Respond(response);
                     break;
             }
+
+#if PERFORMANCE_TEST
+            return Task.CompletedTask;
+#endif
         }
     }
 
@@ -129,7 +140,7 @@ namespace Node2
             var deposit = new ElasticRepository(client, options, "deposit");
             var props = Actor.FromProducer(() => new PlayerActor(player, deposit));
 
-            var parsedArgs = parseArgs(args);
+            var parsedArgs = ParseArgs(args);
             Remote.RegisterKnownKind("Player", props);
             Cluster.Start("MyCluster", parsedArgs.ServerName, parsedArgs.Port, new EtcdProvider(new EtcdProviderOptions(), opt => opt.Hosts = new[] { new Uri("http://192.168.1.102:2379") }));
             Console.WriteLine("Started.");
@@ -147,7 +158,7 @@ namespace Node2
             Cluster.Shutdown();
         }
 
-        private static Node2Config parseArgs(string[] args)
+        private static Node2Config ParseArgs(string[] args)
         {
             if(args.Length >= 3) 
             {
