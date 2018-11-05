@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Messages;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Node2.Contracts;
 using Node2.Storage;
@@ -18,6 +19,7 @@ using Proto.Cluster;
 using Proto.Cluster.Consul;
 using Proto.Cluster.Etcd;
 using Proto.Remote;
+using NullLoggerFactory = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory;
 using ProtosReflection = Messages.ProtosReflection;
 
 namespace Node2
@@ -131,7 +133,8 @@ namespace Node2
 
             var parsedArgs = ParseArgs(args);
             Remote.RegisterKnownKind("Player", props);
-            Cluster.Start("MyCluster", parsedArgs.ServerName, parsedArgs.Port, new EtcdProvider(new EtcdProviderOptions(), opt => opt.Hosts = new[] { new Uri("http://192.168.1.102:2379") }));
+            var logger = new NullLoggerFactory().CreateLogger<EtcdProvider>();
+            Cluster.Start("MyCluster", parsedArgs.ServerName, parsedArgs.Port, new EtcdProvider(new EtcdProviderOptions(), opt => opt.Hosts = new[] { new Uri("http://192.168.1.102:2379") }, logger));
             Console.WriteLine("Started.");
             var exitEvent = new ManualResetEvent(false);
             Console.CancelKeyPress += (sender, eventArgs) =>

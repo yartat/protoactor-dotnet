@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Draft;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -112,16 +113,18 @@ namespace Proto.Cluster.Etcd
         private readonly TimeSpan _serviceTtl;
         private readonly TimeSpan _deregisterCritical;
         private readonly TimeSpan _refreshTtl;
+        private readonly ILogger _logger;
         private volatile bool _shutdown;
         private bool _deregistered;
         private IMemberStatusValue _statusValue;
         private IMemberStatusValueSerializer _statusValueSerializer;
         private volatile string[] _clusterItems;
 
-        public EtcdProvider(EtcdProviderOptions options) : this(options, config => { }) { }
+        public EtcdProvider(EtcdProviderOptions options, ILogger logger) : this(options, config => { }, logger) { }
 
-        public EtcdProvider(EtcdProviderOptions options, Action<EtcdClientOptions> storageConfig)
+        public EtcdProvider(EtcdProviderOptions options, Action<EtcdClientOptions> storageConfig, ILogger logger)
         {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serviceTtl = options.ServiceTtl ?? EtcdProviderOptions.DefaultServiceTtl;
             _refreshTtl = options.RefreshTtl ?? EtcdProviderOptions.DefaultRefreshTtl;
             _deregisterCritical = options.DeregisterCritical ?? EtcdProviderOptions.DefaultDeregisterCritical;
@@ -138,11 +141,11 @@ namespace Proto.Cluster.Etcd
             _client = Draft.Etcd.ClientFor(pool);
         }
 
-        public EtcdProvider(IOptions<EtcdProviderOptions> options) : this(options.Value, config => { })
+        public EtcdProvider(IOptions<EtcdProviderOptions> options, ILogger logger) : this(options.Value, config => { }, logger)
         {
         }
 
-        public EtcdProvider(IOptions<EtcdProviderOptions> options, Action<EtcdClientOptions> storageConfig) : this(options.Value, storageConfig)
+        public EtcdProvider(IOptions<EtcdProviderOptions> options, Action<EtcdClientOptions> storageConfig, ILogger logger) : this(options.Value, storageConfig, logger)
         {
         }
 
@@ -262,8 +265,9 @@ namespace Proto.Cluster.Etcd
         private async Task NotifyStatuses()
         {
             var items = await _client.GetKey($"{_clusterName}/").WithRecursive().Execute().ConfigureAwait(false);
-            if (items.Data == null || !items.Data.IsDir)
+            if (items?.Data == null || !items.Data.IsDir)
             {
+                _logger.LogError($"Cluster root key '{_clusterName}' is not available in ETCD storage!");
                 return;
             }
 
@@ -304,6 +308,18 @@ namespace Proto.Cluster.Etcd
                                 break;
                         }
                     }
+                }
+
+                if (string.IsNullOrEmpty(memberId))
+                {
+                    _logger.LogWarning($"Cluster member id is null! Key is '{dataChild.Key}'.");
+                    continue;
+                }
+
+                if (kinds == null)
+                {
+                    _logger.LogWarning($"Cluster kinds is null! Key is '{dataChild.Key}'.");
+                    continue;
                 }
 
                 memberStatuses.Add(new MemberStatus(memberId, host, port, kinds, true, memberStatusValue != null ? _statusValueSerializer.FromValueBytes(memberStatusValue) : null));

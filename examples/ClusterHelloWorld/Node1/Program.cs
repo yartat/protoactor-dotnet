@@ -13,11 +13,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Messages;
+using Microsoft.Extensions.Logging;
 using Proto;
 using Proto.Cluster;
 using Proto.Cluster.Consul;
 using Proto.Cluster.Etcd;
 using Proto.Remote;
+using NullLoggerFactory = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory;
 using Process = System.Diagnostics.Process;
 using ProtosReflection = Messages.ProtosReflection;
 
@@ -37,7 +39,8 @@ class Program
 
         Serialization.RegisterFileDescriptor(ProtosReflection.Descriptor);
         var parsedArgs = parseArgs(args);
-        Cluster.Start("MyCluster", parsedArgs.ServerName, 12001, new EtcdProvider(new EtcdProviderOptions(), options => options.Hosts = new []{ new Uri("http://192.168.1.102:2379") }));
+        var logger = new NullLoggerFactory().CreateLogger<EtcdProvider>();
+        Cluster.Start("MyCluster", parsedArgs.ServerName, 12001, new EtcdProvider(new EtcdProviderOptions(), options => options.Hosts = new []{ new Uri("http://192.168.1.102:2379") }, logger));
         var random = new Random();
         var (t, s) = await Cluster.GetAsync(ItemNames[0], "Player").ConfigureAwait(false);
         while (t == null)
