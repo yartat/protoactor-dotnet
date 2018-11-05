@@ -62,7 +62,7 @@ namespace Client.Controllers
                         Id = request.TransactionId,
                         Amount = (double?) request.Amount ?? 0D,
                         Currency = request.CurrencyCode,
-                        Date = request.CreatedOn.Value.ToTimestamp(),
+                        Date = request.CreatedOn != null ? request.CreatedOn.Value.ToTimestamp() : new Timestamp(),
                         Manual = request.Manual ?? false,
                         PlayerId = request.PlayerId,
                         Kiosk = request.KioskId

@@ -129,7 +129,7 @@ namespace Node2
             var deposit = new ElasticRepository(client, options, "deposit");
             var props = Props.FromProducer(() => new PlayerActor(player, deposit));
 
-            var parsedArgs = parseArgs(args);
+            var parsedArgs = ParseArgs(args);
             Remote.RegisterKnownKind("Player", props);
             Cluster.Start("MyCluster", parsedArgs.ServerName, parsedArgs.Port, new EtcdProvider(new EtcdProviderOptions(), opt => opt.Hosts = new[] { new Uri("http://192.168.1.102:2379") }));
             Console.WriteLine("Started.");
@@ -147,7 +147,7 @@ namespace Node2
             Cluster.Shutdown();
         }
 
-        private static Node2Config parseArgs(string[] args)
+        private static Node2Config ParseArgs(string[] args)
         {
             if(args.Length >= 3) 
             {

@@ -23,7 +23,7 @@ namespace DrawNiceTrace
             var rootContext = new RootContext(new MessageHeader(), OpenTracingExtensions.OpenTracingSenderMiddleware())
                 .WithOpenTracing();
 
-            var bankProps = Props.FromFunc(async ctx =>
+            var bankProps = Props.FromFunc(ctx =>
             {
                 switch (ctx.Message)
                 {
@@ -31,6 +31,8 @@ namespace DrawNiceTrace
                         ctx.Respond(new ProcessPaymentResponse { Ok = true });
                         break;
                 }
+
+                return Task.CompletedTask;
             }).WithOpenTracing();
             var bank = rootContext.Spawn(bankProps);
 
@@ -53,35 +55,35 @@ namespace DrawNiceTrace
 
             var cartProps = Props.FromProducer(() => new CartActor(bank)).WithOpenTracing();
             long nextCartNumber = 1;
-            string getActorName(long number) => $"cart-{number}";
+            string GetActorName(long number) => $"cart-{number}";
 
             var dinnerProps = Props.FromFunc(async ctx =>
             {
                 switch (ctx.Message)
                 {
                     case AddItem addItem:
-                        PID cartPID;
+                        PID cartPid;
                         if (addItem.CartNumber == default)
                         {
                             var cartNumber = nextCartNumber++;
-                            cartPID = ctx.SpawnNamed(cartProps, getActorName(cartNumber));
-                            ctx.Send(cartPID, new AssignCartNumber { CartNumber = cartNumber });
+                            cartPid = ctx.SpawnNamed(cartProps, GetActorName(cartNumber));
+                            ctx.Send(cartPid, new AssignCartNumber { CartNumber = cartNumber });
                         }
                         else
                         {
-                            var cartActorName = getActorName(addItem.CartNumber);
-                            cartPID = ctx.Children.First(p => p.Id.EndsWith(cartActorName));
+                            var cartActorName = GetActorName(addItem.CartNumber);
+                            cartPid = ctx.Children.First(p => p.Id.EndsWith(cartActorName));
                         }
-                        ctx.Forward(cartPID);
+                        ctx.Forward(cartPid);
                         break;
 
                     case ConfirmOrder confirmOrder:
-                        var orderPid = ctx.Children.First(p => p.Id.EndsWith(getActorName(confirmOrder.CartNumber)));
+                        var orderPid = ctx.Children.First(p => p.Id.EndsWith(GetActorName(confirmOrder.CartNumber)));
                         ctx.Forward(orderPid);
                         break;
 
                     case SendPaymentDetails sendPaymentDetails:
-                        var orderPid2 = ctx.Children.First(p => p.Id.EndsWith(getActorName(sendPaymentDetails.OrderNumber)));
+                        var orderPid2 = ctx.Children.First(p => p.Id.EndsWith(GetActorName(sendPaymentDetails.OrderNumber)));
                         var resp = await ctx.RequestAsync<ProcessPaymentResponse>(orderPid2, sendPaymentDetails);
                         if (resp.Ok) // it will always, we have super rich customers
                             ctx.Send(restaurant, new TriggerFood { Customer = sendPaymentDetails.Customer, OrderNumber = sendPaymentDetails.OrderNumber });
@@ -112,7 +114,7 @@ namespace DrawNiceTrace
 
                         break;
 
-                    case DeliverFood deliver:
+                    case DeliverFood _:
                         throw new Exception("Food Delivered !");
                 }
             })
@@ -159,7 +161,7 @@ namespace DrawNiceTrace
                         ctx.Respond(new ConfirmOrderResponse { OrderNumber = confirmOrder.CartNumber });
                         break;
 
-                    case SendPaymentDetails sendPaymentDetails:
+                    case SendPaymentDetails _:
                         if (!_isConfirmed) throw new InvalidOperationException("Haaaaaa!");
                         var response = await ctx.RequestAsync<ProcessPaymentResponse>(_bank, new ProcessPayment());
                         if (!response.Ok) throw new InvalidOperationException("Haaaaaaaa!");

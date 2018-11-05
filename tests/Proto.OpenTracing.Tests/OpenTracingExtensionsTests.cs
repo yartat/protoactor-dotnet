@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using NSubstitute;
 using OpenTracing;
 using Proto.TestFixtures;
@@ -12,29 +11,25 @@ namespace Proto.OpenTracing.Tests
     /// </summary>
     public class OpenTracingExtensionsTests
     {
-        private readonly ISpanContext _spanContext;
-        private readonly ISpan _span;
-        private readonly IScope _scope;
-        private readonly ISpanBuilder _spanBuilder;
         private readonly ITracer _tracer;
 
         public OpenTracingExtensionsTests()
         {
-            _spanContext = Substitute.For<ISpanContext>();
+            var spanContext = Substitute.For<ISpanContext>();
 
-            _span = Substitute.For<ISpan>();
-            _span.Context.Returns(_spanContext);
+            var span = Substitute.For<ISpan>();
+            span.Context.Returns(spanContext);
 
-            _scope = Substitute.For<IScope>();
-            _scope.Span.Returns(_span);
+            var scope = Substitute.For<IScope>();
+            scope.Span.Returns(span);
 
-            _spanBuilder = Substitute.For<ISpanBuilder>();
-            _spanBuilder.AsChildOf(Arg.Any<ISpan>()).Returns(_spanBuilder);
-            _spanBuilder.StartActive().Returns(_scope);
-            _spanBuilder.StartActive(Arg.Any<bool>()).ReturnsForAnyArgs(_scope);
+            var spanBuilder = Substitute.For<ISpanBuilder>();
+            spanBuilder.AsChildOf(Arg.Any<ISpan>()).Returns(spanBuilder);
+            spanBuilder.StartActive().Returns(scope);
+            spanBuilder.StartActive(Arg.Any<bool>()).ReturnsForAnyArgs(scope);
 
             _tracer = Substitute.For<ITracer>();
-            _tracer.BuildSpan("").ReturnsForAnyArgs(_spanBuilder);
+            _tracer.BuildSpan("").ReturnsForAnyArgs(spanBuilder);
         }
 
         [Fact]
@@ -60,7 +55,7 @@ namespace Proto.OpenTracing.Tests
         }
 
         [Fact]
-        public async Task RootContextOpenTracingSenderTest()
+        public void RootContextOpenTracingSenderTest()
         {
             var root = new RootContext(new MessageHeader(), OpenTracingExtensions.OpenTracingSenderMiddleware(_tracer))
                 .WithOpenTracing(tracer: _tracer);
@@ -86,7 +81,7 @@ namespace Proto.OpenTracing.Tests
         }
 
         [Fact]
-        public async Task ActorContextOpenTracingSenderTest()
+        public void ActorContextOpenTracingSenderTest()
         {
             var messages = new List<object>();
 

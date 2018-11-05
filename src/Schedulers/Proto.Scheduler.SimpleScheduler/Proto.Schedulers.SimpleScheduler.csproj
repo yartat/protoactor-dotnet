@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
-    <Version>0.2.0.9-dev</Version>
+    <Version>0.2.0.10-dev</Version>
     <OutputType>library</OutputType>
     <Authors>Proto.Actor Team</Authors>
     <Description>Ultra-fast distributed actors for .NET.</Description>
@@ -16,6 +16,8 @@
     <AssemblyName>Proto.Schedulers.SimpleScheduler</AssemblyName>
     <RootNamespace>Proto.Schedulers.SimpleScheduler</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>0.2.0.10</AssemblyVersion>
+    <FileVersion>0.2.0.10</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">

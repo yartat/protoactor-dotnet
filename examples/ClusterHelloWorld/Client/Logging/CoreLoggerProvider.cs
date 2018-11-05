@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using BetLab.Common.Logging;
-using BetLab.Logging.Logstash;
+using BetLab.Logging.Fast;
 using Microsoft.Extensions.Logging;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using BetLabLogLevel = BetLab.Common.Logging.LogLevel;
@@ -15,7 +15,7 @@ namespace Client.Logging
     /// </summary>
     public class CoreLoggerProvider : ILoggerProvider
     {
-        private LogLevel _betlabLogLevel;
+        private readonly LogLevel _betlabLogLevel;
 
         /// <summary>
         /// Initializes new instance of the <see cref="CoreLoggerProvider"/> class.
@@ -24,7 +24,7 @@ namespace Client.Logging
         /// <param name="loggerOptions">The logger options from configuration.</param>
         public CoreLoggerProvider(string environmentName, LoggerOptions loggerOptions)
         {
-            var logstashFactory = new LogstashFactory(loggerOptions.LogstashIndex, loggerOptions.ElasticAddress)
+            var logstashFactory = new FastConsoleLoggerFactory("core", "helloWorld")
                 .AddContextProperty("Environment", environmentName);
             Logger.SetLoggerFactory(logstashFactory);
 
