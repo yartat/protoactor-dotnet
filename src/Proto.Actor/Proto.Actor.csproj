@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
-    <Version>0.2.0.12-dev</Version>
+    <Version>0.2.0.13</Version>
     <RootNamespace>Proto</RootNamespace>
     <OutputType>library</OutputType>
     <Authors>Proto.Actor Team</Authors>
@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.6.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.8.0" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />

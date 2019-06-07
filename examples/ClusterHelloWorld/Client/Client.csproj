@@ -19,9 +19,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Cors" Version="2.1.2" />
 
     <PackageReference Include="BetLab.Logging" Version="2.1.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="3.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="3.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="3.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="4.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="4.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="4.0.1" />
     <PackageReference Include="System.Diagnostics.FileVersionInfo" Version="4.3.0" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Filter" Version="1.1.2" />

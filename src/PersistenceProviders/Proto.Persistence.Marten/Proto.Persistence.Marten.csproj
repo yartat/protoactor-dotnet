@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
-    <Version>0.2.0.12-dev</Version>
+    <Version>0.2.0.13</Version>
     <Authors>Proto.Actor Team</Authors>
     <Company>Proto.Actor Team</Company>
     <Description>Ultra-fast distributed actors for .NET.</Description>
@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Marten" Version="2.10.0" />
+    <PackageReference Include="Marten" Version="3.5.0" />
   </ItemGroup>
 
   <ItemGroup>
