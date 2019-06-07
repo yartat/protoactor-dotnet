@@ -48,11 +48,18 @@ namespace Proto.Remote
 
         public static void Stop()
         {
-            EventStream.Instance.Unsubscribe(_endpointTermEvnSub.Id);
-            EventStream.Instance.Unsubscribe(_endpointConnEvnSub.Id);
+            if (_endpointTermEvnSub != null)
+            {
+                EventStream.Instance.Unsubscribe(_endpointTermEvnSub.Id);
+            }
+
+            if (_endpointConnEvnSub != null)
+            {
+                EventStream.Instance.Unsubscribe(_endpointConnEvnSub.Id);
+            }
 
             Connections.Clear();
-            _endpointSupervisor.Stop();
+            _endpointSupervisor?.Stop();
             Logger.LogDebug("Stopped EndpointManager");
         }
 

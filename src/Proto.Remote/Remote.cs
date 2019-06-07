@@ -72,28 +72,32 @@ namespace Proto.Remote
             Logger.LogDebug($"Starting Proto.Actor server on {boundAddr} ({addr})");
         }
 
+        /// <summary>
+        /// Shutdowns the remotes gracefully.
+        /// </summary>
+        /// <param name="gracefull">if set to <c>true</c> [gracefully].</param>
         public static void Shutdown(bool gracefull = true)
         {
             try
             {
                 EndpointManager.Stop();
-                _endpointReader.Suspend(true);
+                _endpointReader?.Suspend(true);
                 StopActivator();
                 if (gracefull)
                 {
-                    _server.ShutdownAsync().Wait(10000);
+                    _server?.ShutdownAsync().Wait(10000);
                 }
                 else
                 {
-                    _server.KillAsync().Wait(10000);
+                    _server?.KillAsync().Wait(10000);
                 }
                 
                 Logger.LogDebug($"Proto.Actor server stopped on {ProcessRegistry.Instance.Address}. Graceful:{gracefull}");
             }
             catch (Exception ex)
             {
-                _server.KillAsync().Wait(1000);
-                Logger.LogError($"Proto.Actor server stopped on {ProcessRegistry.Instance.Address} with error:\n{ex.Message}");
+                _server?.KillAsync().Wait(1000);
+                Logger.LogError(new EventId(1000), ex, $"Proto.Actor server stopped on {ProcessRegistry.Instance.Address} with error:\n{ex.Message}");
             }
         }
 
@@ -105,7 +109,7 @@ namespace Proto.Remote
 
         private static void StopActivator()
         {
-            ActivatorPid.Stop();
+            ActivatorPid?.Stop();
         }
 
         public static PID ActivatorForAddress(string address)

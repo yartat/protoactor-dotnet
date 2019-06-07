@@ -59,8 +59,15 @@ namespace Proto.Cluster
                 kind.Stop();
             }
             KindMap.Clear();
-            EventStream.Instance.Unsubscribe(_memberStatusSub.Id);
-            EventStream.Instance.Unsubscribe(_nodeShutdownSub.Id);
+            if (_memberStatusSub != null)
+            {
+                EventStream.Instance.Unsubscribe(_memberStatusSub.Id);
+            }
+
+            if (_nodeShutdownSub != null)
+            {
+                EventStream.Instance.Unsubscribe(_nodeShutdownSub.Id);
+            }
         }
 
         public static PID PartitionForKind(string address, string kind)

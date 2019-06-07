@@ -18,9 +18,18 @@ namespace Proto.Cluster
     public static class Cluster
     {
         private static readonly ILogger Logger = Log.CreateLogger(typeof(Cluster).FullName);
-
         internal static ClusterConfig Config;
 
+        /// <summary>
+        /// Starts the specified cluster.
+        /// </summary>
+        /// <param name="clusterName">Name of the cluster.</param>
+        /// <param name="address">The address.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="cp">The cp.</param>
+        /// <param name="advertisedHostname">The advertised hostname.</param>
+        /// <param name="advertisedPort">The advertised port.</param>
+        /// <param name="memberStrategyBuilder">The member strategy builder.</param>
         public static void Start(
             string clusterName, 
             string address, 
@@ -31,6 +40,10 @@ namespace Proto.Cluster
             Func<string, IMemberStrategy> memberStrategyBuilder = null) => 
             StartWithConfig(new ClusterConfig(clusterName, address, port, cp, advertisedHostname, advertisedPort, memberStrategyBuilder));
 
+        /// <summary>
+        /// Starts cluster the with configuration.
+        /// </summary>
+        /// <param name="config">The configuration.</param>
         public static void StartWithConfig(ClusterConfig config)
         {
             Config = config;
@@ -72,14 +85,22 @@ namespace Proto.Cluster
             Logger.LogInformation("Cluster was started successfully");
         }
 
+        /// <summary>
+        /// Shutdowns cluster gracefully.
+        /// </summary>
+        /// <param name="gracefull">if set to <c>true</c> [gracefully].</param>
         public static void Shutdown(bool gracefull = true)
         {
             if (gracefull)
             {
                 //This is to wait ownership transferring complete.
-                var tasks = Config.ClusterProvider.ClusterAddresses.Select(x => Remote.Remote.SpawnShutdown(x, TimeSpan.FromSeconds(3)));
-                Task.WhenAll(tasks).GetAwaiter().GetResult();
-                Config.ClusterProvider.Shutdown();
+                if (Config?.ClusterProvider != null)
+                {
+                    var tasks = Config.ClusterProvider.ClusterAddresses.Select(x => Remote.Remote.SpawnShutdown(x, TimeSpan.FromSeconds(3)));
+                    Task.WhenAll(tasks).GetAwaiter().GetResult();
+                    Config.ClusterProvider.Shutdown();
+                }
+
                 MemberList.Stop();
                 PidCache.Stop();
                 Partition.Stop();
@@ -99,8 +120,21 @@ namespace Proto.Cluster
             return (host, port);
         }
 
+        /// <summary>
+        /// Gets the asynchronous.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="kind">The kind.</param>
+        /// <returns></returns>
         public static Task<(PID, ResponseStatusCode)> GetAsync(string name, string kind) => GetAsync(name, kind, CancellationToken.None);
 
+        /// <summary>
+        /// Gets the asynchronous.
+        /// </summary>
+        /// <param name="name">The actor name.</param>
+        /// <param name="kind">The actor kind.</param>
+        /// <param name="ct">The cancellation token instance.</param>
+        /// <returns></returns>
         public static async Task<(PID, ResponseStatusCode)> GetAsync(string name, string kind, CancellationToken ct)
         {
             //Check Cache
@@ -147,6 +181,10 @@ namespace Proto.Cluster
             }
         }
 
+        /// <summary>
+        /// Removes actor name from the cache.
+        /// </summary>
+        /// <param name="name">The actor name.</param>
         public static void RemoveCache(string name) => PidCache.RemoveCacheByName(name);
 
         private static IPAddress GetLocalIpAddress()

@@ -30,7 +30,10 @@ namespace Proto.Cluster
 
         internal static void Stop()
         {
-            Actor.EventStream.Unsubscribe(_clusterTopologyEvnSub.Id);
+            if (_clusterTopologyEvnSub != null)
+            {
+                Actor.EventStream.Unsubscribe(_clusterTopologyEvnSub.Id);
+            }
         }
 
         internal static string[] GetMembers(string kind)
